@@ -309,7 +309,7 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, onNewMessage }) 
             </Avatar>
             <Box>
               <Typography variant="subtitle1" fontWeight={600}>
-                Amogh's Assistant
+                Amogh&apos;s Assistant
               </Typography>
               <Typography variant="caption" color="text.secondary">
                 Online

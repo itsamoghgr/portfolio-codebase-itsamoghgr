@@ -7,7 +7,7 @@ import {
   useTheme,
   Badge
 } from '@mui/material';
-import { Chat as ChatIcon, Close as CloseIcon } from '@mui/icons-material';
+import { Chat as ChatIcon } from '@mui/icons-material';
 import { useTheme as useCustomTheme } from '../../../contexts/ThemeContext';
 import ChatModal from './ChatModal';
 
