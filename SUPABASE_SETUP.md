@@ -36,10 +36,14 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
 ### For Vercel:
 1. Go to your Vercel project dashboard
 2. Navigate to **Settings** > **Environment Variables**
-3. Add both environment variables:
-   - `NEXT_PUBLIC_SUPABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-4. Redeploy your project
+3. Add these server-side environment variables (preferred for API routes):
+   - `SUPABASE_URL` = `https://your-project-id.supabase.co`
+   - `SUPABASE_ANON_KEY` = `your-anon-key-here`
+4. Also add client-side variables (as backup):
+   - `NEXT_PUBLIC_SUPABASE_URL` = `https://your-project-id.supabase.co`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY` = `your-anon-key-here`
+5. Make sure all environments are selected (Production, Preview, Development)
+6. Redeploy your project
 
 ## 6. Test the Integration
 
