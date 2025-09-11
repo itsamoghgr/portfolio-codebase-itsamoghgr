@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient, type Contact } from '@/lib/supabase';
 
-export const dynamic = 'force-dynamic';
-
 interface ContactData {
   fullName: string;
   email: string;

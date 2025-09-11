@@ -1,8 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Remove static export for Vercel deployment to enable API routes
-  // output: 'export',
+  // Remove output: 'export' to enable Next.js API routes on Vercel
   trailingSlash: true,
   images: {
     unoptimized: true
