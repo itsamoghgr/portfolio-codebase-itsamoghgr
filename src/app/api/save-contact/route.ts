@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { promises as fs } from 'fs';
-import path from 'path';
+import { supabase, type Contact } from '@/lib/supabase';
 
 interface ContactData {
   fullName: string;
@@ -13,6 +12,16 @@ interface ContactData {
 
 export async function POST(request: NextRequest) {
   try {
+    // Check if Supabase is configured
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 
+        process.env.NEXT_PUBLIC_SUPABASE_URL === 'https://placeholder.supabase.co') {
+      console.warn('Supabase not configured. Contact form submission skipped.');
+      return NextResponse.json(
+        { error: 'Database not configured. Please set up Supabase environment variables.' },
+        { status: 503 }
+      );
+    }
+
     const contactData: ContactData = await request.json();
     
     // Validate required fields
@@ -23,44 +32,36 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create data directory if it doesn't exist
-    const dataDir = path.join(process.cwd(), 'data');
-    try {
-      await fs.access(dataDir);
-    } catch {
-      await fs.mkdir(dataDir, { recursive: true });
-    }
-
-    // Path to contacts file
-    const contactsFile = path.join(dataDir, 'contacts.json');
-    
-    // Read existing contacts or initialize empty array
-    let contacts: ContactData[] = [];
-    try {
-      const fileContent = await fs.readFile(contactsFile, 'utf-8');
-      contacts = JSON.parse(fileContent);
-    } catch {
-      // File doesn't exist or is invalid, start with empty array
-      contacts = [];
-    }
-
-    // Add the new contact with a unique ID
-    const newContact: ContactData & { id: string } = {
-      ...contactData,
-      id: `contact_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      timestamp: contactData.timestamp || new Date().toISOString()
+    // Prepare data for Supabase (convert camelCase to snake_case)
+    const supabaseContact: Omit<Contact, 'id' | 'created_at'> = {
+      full_name: contactData.fullName,
+      email: contactData.email,
+      phone_number: contactData.phoneNumber || null,
+      message: contactData.message,
+      timestamp: contactData.timestamp || new Date().toISOString(),
+      source: contactData.source || 'chatbot'
     };
 
-    contacts.push(newContact);
+    // Insert into Supabase
+    const { data, error } = await supabase
+      .from('contacts')
+      .insert([supabaseContact])
+      .select()
+      .single();
 
-    // Write back to file
-    await fs.writeFile(contactsFile, JSON.stringify(contacts, null, 2), 'utf-8');
+    if (error) {
+      console.error('Supabase error:', error);
+      return NextResponse.json(
+        { error: 'Failed to save contact data', details: error.message },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json(
       { 
         success: true, 
         message: 'Contact saved successfully',
-        id: newContact.id
+        id: data.id
       },
       { status: 200 }
     );
