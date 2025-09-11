@@ -21,7 +21,7 @@ export const projectsData = {
       "date": "Oct 2024"
     },
     {
-      "id": "4",
+      "id": "3",
       "title": "Biometric Authentication System",
       "description": "Engineered dual-layer authentication system integrating DeepFace for facial recognition and MFCC features for voice recognition with 30% improved accuracy.",
       "techStack": ["Python", "DeepFace", "MFCC", "Flask", "Computer Vision"],
@@ -48,7 +48,7 @@ export const projectsData = {
       "repoUrl": "https://github.com/itsamoghgr/portfolio",
       "liveDemoUrl": "https://amoghramagiri.com",
       "imageUrl": "/images/portfolio/img-6.png",
-      "date": "Sept 2025"
+      "date": "Aug 2025"
     },
     {
       "id": "7",

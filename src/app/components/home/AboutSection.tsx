@@ -167,29 +167,27 @@ const AboutSection = () => {
                         fontSize: '18px',
                         fontWeight: 600,
                         color: theme.palette.primary.main,
-                        mb: 3,
+                        mb: 0.5,
                         fontFamily: 'Inter, sans-serif'
                       }}
                     >
                       Data Scientist Intern
                     </Typography>
                     
+                    <Typography 
+                      variant="body1" 
+                      sx={{ 
+                        fontSize: '16px',
+                        fontWeight: 500,
+                        color: theme.palette.text.secondary,
+                        mb: 3,
+                        fontFamily: 'Inter, sans-serif'
+                      }}
+                    >
+                      @ Fulton Bank
+                    </Typography>
+                    
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                      <Typography 
-                        variant="body1" 
-                        sx={{ 
-                          fontSize: '15px',
-                          color: theme.palette.text.secondary,
-                          fontFamily: 'Inter, sans-serif',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 1
-                        }}
-                      >
-                        <span style={{ fontSize: '16px' }}>📧</span>
-                        amoghr@gwu.edu
-                      </Typography>
-                      
                       <Typography 
                         variant="body1" 
                         sx={{ 
@@ -340,7 +338,7 @@ const AboutSection = () => {
                 sx={{ 
                   fontSize: { xs: '15px', sm: '16px', md: '18px' },
                   lineHeight: 1.6,
-                  textAlign: { xs: 'left', sm: 'justify' },
+                  textAlign: 'justify',
                   color: theme.palette.text.secondary,
                   mb: { xs: 2, sm: 3 }
                 }}
@@ -353,7 +351,7 @@ const AboutSection = () => {
                 sx={{ 
                   fontSize: { xs: '15px', sm: '16px', md: '18px' },
                   lineHeight: 1.6,
-                  textAlign: { xs: 'left', sm: 'justify' },
+                  textAlign: 'justify',
                   color: theme.palette.text.secondary,
                   mb: { xs: 2, sm: 3 }
                 }}
@@ -366,7 +364,7 @@ const AboutSection = () => {
                 sx={{ 
                   fontSize: { xs: '15px', sm: '16px', md: '18px' },
                   lineHeight: 1.6,
-                  textAlign: { xs: 'left', sm: 'justify' },
+                  textAlign: 'justify',
                   color: theme.palette.text.secondary,
                   mb: { xs: 3, sm: 4 }
                 }}

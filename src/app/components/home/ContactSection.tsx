@@ -122,7 +122,6 @@ const ContactSection = () => {
                     cursor: info.href ? 'pointer' : 'default',
                     width: '100%',
                     maxWidth: { xs: '320px', sm: 'none' },
-                    height: { xs: 'auto', sm: '200px' },
                     display: 'flex',
                     flexDirection: 'column',
                     '&:hover': {
@@ -134,17 +133,18 @@ const ContactSection = () => {
                   }}
                 >
                     <CardContent sx={{ 
-                      p: { xs: 3, sm: 4 }, 
+                      p: { xs: 4, sm: 5 }, 
                       textAlign: 'center',
                       flex: 1,
                       display: 'flex',
                       flexDirection: 'column',
                       justifyContent: 'center',
-                      alignItems: 'center'
+                      alignItems: 'center',
+                      minHeight: { xs: '180px', sm: '200px' }
                     }}>
                       <Box 
                         sx={{ 
-                          mb: { xs: 2, sm: 3 },
+                          mb: { xs: 3, sm: 4 },
                           width: { xs: '70px', sm: '80px' },
                           height: { xs: '70px', sm: '80px' },
                           borderRadius: '50%',
@@ -170,7 +170,7 @@ const ContactSection = () => {
                           fontFamily: 'Raleway, sans-serif',
                           fontWeight: 600,
                           color: theme.palette.text.primary,
-                          mb: { xs: 0.5, sm: 1 },
+                          mb: { xs: 1.5, sm: 2 },
                           fontSize: { xs: '1.2rem', sm: '1.3rem' }
                         }}
                       >

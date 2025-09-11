@@ -198,7 +198,7 @@ const ExperienceSection = () => {
                 : '0 8px 32px rgba(0,0,0,0.1)',
               mb: 4
             }}>
-              <CardContent sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
+              <CardContent sx={{ p: { xs: 3, sm: 4, md: 5 } }}>
                 <Typography 
                   variant="h3" 
                   sx={{ 
@@ -287,7 +287,8 @@ const ExperienceSection = () => {
                       sx={{ 
                         lineHeight: 1.6,
                         color: theme.palette.text.secondary,
-                        fontSize: { xs: '15px', sm: '14px' }
+                        fontSize: { xs: '15px', sm: '14px' },
+                        textAlign: 'justify'
                       }}
                     >
                       {item.description}
@@ -308,7 +309,7 @@ const ExperienceSection = () => {
                 : '0 8px 32px rgba(0,0,0,0.1)',
               mb: 4
             }}>
-              <CardContent sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
+              <CardContent sx={{ p: { xs: 3, sm: 4, md: 5 } }}>
                 <Typography 
                   variant="h3" 
                   sx={{ 
@@ -372,7 +373,8 @@ const ExperienceSection = () => {
                       sx={{ 
                         lineHeight: 1.6,
                         color: theme.palette.text.secondary,
-                        fontSize: '14px'
+                        fontSize: '14px',
+                        textAlign: 'justify'
                       }}
                     >
                       {item.description}
@@ -392,7 +394,7 @@ const ExperienceSection = () => {
                 ? '0 8px 32px rgba(0,0,0,0.3)' 
                 : '0 8px 32px rgba(0,0,0,0.1)'
             }}>
-              <CardContent sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
+              <CardContent sx={{ p: { xs: 3, sm: 4, md: 5 } }}>
                 <Typography 
                   variant="h3" 
                   sx={{ 
@@ -481,7 +483,8 @@ const ExperienceSection = () => {
                       sx={{ 
                         lineHeight: 1.6,
                         color: theme.palette.text.secondary,
-                        fontSize: '14px'
+                        fontSize: '14px',
+                        textAlign: 'justify'
                       }}
                     >
                       {item.description}
@@ -503,7 +506,7 @@ const ExperienceSection = () => {
                 ? '0 8px 32px rgba(0,0,0,0.3)' 
                 : '0 8px 32px rgba(0,0,0,0.1)'
             }}>
-              <CardContent sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
+              <CardContent sx={{ p: { xs: 3, sm: 4, md: 5 } }}>
                 <Typography 
                   variant="h3" 
                   sx={{ 
@@ -601,6 +604,7 @@ const ExperienceSection = () => {
                             fontSize: { xs: '12px', sm: '14px' },
                             position: 'relative',
                             paddingLeft: { xs: '16px', sm: '20px' },
+                            textAlign: 'justify',
                             '&::before': {
                               content: '"•"',
                               color: theme.palette.primary.main,

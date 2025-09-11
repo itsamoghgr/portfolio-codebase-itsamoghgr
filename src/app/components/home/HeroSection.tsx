@@ -16,7 +16,7 @@ import { useTheme as useCustomTheme } from '../../../contexts/ThemeContext';
 const HeroSection = () => {
   const [displayedText, setDisplayedText] = useState('');
   const [currentIndex, setCurrentIndex] = useState(0);
-  const typedItems = useMemo(() => ['Student', 'Data Scientist', 'Developer', 'Photographer', 'Traveller'], []);
+  const typedItems = useMemo(() => ['Data Scientist', 'Developer', 'Photographer', 'Traveller'], []);
   
   const { isDarkMode } = useCustomTheme();
   const theme = useTheme();
