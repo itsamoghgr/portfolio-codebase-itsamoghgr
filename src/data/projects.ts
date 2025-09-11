@@ -68,7 +68,7 @@ export const projectsData = {
       "repoUrl": "https://github.com/itsamoghgr/fashion_mnist",
       "liveDemoUrl": "",
       "imageUrl": "/images/portfolio/img-8.png",
-      "date": "May 2023"
+      "date": "May 2022"
     },
     {
       "id": "9",
