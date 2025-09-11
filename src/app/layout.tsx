@@ -6,6 +6,7 @@ import Navbar from '@/components/common/navbar';
 import Footer from '@/components/common/footer';
 import ChatWidget from '@/app/components/chatbot/ChatWidget';
 import { ThemeProvider } from '@/contexts/ThemeContext';
+import { Analytics } from '@vercel/analytics/react';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -41,6 +42,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           {children}
           <Footer />
           <ChatWidget />
+          <Analytics />
         </ThemeProvider>
       </body>
     </html>
