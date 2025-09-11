@@ -10,8 +10,13 @@ import { ThemeProvider } from '@/contexts/ThemeContext';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Amogh | Data Scientist Portfolio',
+  title: 'Amogh\'s Portfolio',
   description: 'Portfolio of Amogh G. Ramagiri - Data Scientist, Developer, Analyst',
+  icons: {
+    icon: '/favicon.ico',
+    shortcut: '/favicon.ico',
+    apple: '/favicon.ico',
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
