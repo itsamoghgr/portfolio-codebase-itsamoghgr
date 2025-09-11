@@ -251,10 +251,75 @@ a {
   html {
     font-size: 14px;
   }
+  
+  body {
+    padding: 0 16px;
+  }
 }
 
 @media (max-width: 480px) {
   html {
     font-size: 13px;
+  }
+  
+  body {
+    padding: 0 12px;
+  }
+}
+
+/* Mobile-specific improvements */
+@media (max-width: 768px) {
+  .mobile-container {
+    padding: 20px 16px;
+  }
+  
+  .mobile-text-center {
+    text-align: center;
+  }
+  
+  .mobile-stack {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .mobile-hidden {
+    display: none;
+  }
+  
+  .mobile-full-width {
+    width: 100%;
+  }
+}
+
+/* Touch-friendly buttons */
+@media (max-width: 768px) {
+  button, .btn-modern {
+    min-height: 44px;
+    padding: 12px 20px;
+    font-size: 16px;
+  }
+  
+  a {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+}
+
+/* Improved mobile scrolling */
+@media (max-width: 768px) {
+  html {
+    scroll-padding-top: 100px;
+  }
+  
+  body {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Mobile viewport fixes */
+@supports (-webkit-touch-callout: none) {
+  .mobile-viewport-fix {
+    min-height: -webkit-fill-available;
   }
 }

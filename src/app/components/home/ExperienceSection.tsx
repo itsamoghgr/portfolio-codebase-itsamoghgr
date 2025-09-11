@@ -118,9 +118,12 @@ const ExperienceSection = () => {
         <Box sx={{ 
           display: 'flex', 
           alignItems: 'center', 
-          justifyContent: 'center',
-          mb: 6,
-          position: 'relative'
+          justifyContent: { xs: 'center', sm: 'center' },
+          mb: { xs: 4, sm: 6 },
+          position: 'relative',
+          flexDirection: { xs: 'column', sm: 'row' },
+          gap: { xs: 3, sm: 0 },
+          width: '100%'
         }}>
           <Box sx={{ textAlign: 'center' }}>
             <Typography 
@@ -129,7 +132,7 @@ const ExperienceSection = () => {
                 fontFamily: 'Raleway, sans-serif',
                 fontWeight: 'bold',
                 color: theme.palette.text.primary,
-                fontSize: '2rem',
+                fontSize: { xs: '1.5rem', sm: '2rem' },
                 position: 'relative',
                 display: 'inline-block',
                 '&::after': {
@@ -153,15 +156,18 @@ const ExperienceSection = () => {
             href="/static/downloads/amogh_ramagiri_resume.pdf"
             download
             sx={{
-              position: 'absolute',
-              right: 0,
+              position: { xs: 'static', sm: 'absolute' },
+              right: { xs: 'auto', sm: 0 },
+              alignSelf: { xs: 'center', sm: 'auto' },
               backgroundColor: theme.palette.primary.main,
               color: 'white',
               fontWeight: 600,
-              px: 3,
-              py: 1.5,
+              px: { xs: 2.5, sm: 3 },
+              py: { xs: 1.2, sm: 1.5 },
+              fontSize: { xs: '14px', sm: '16px' },
               borderRadius: 2,
               textTransform: 'none',
+              minHeight: { xs: '44px', sm: 'auto' },
               '&:hover': {
                 backgroundColor: theme.palette.primary.dark,
                 transform: 'translateY(-2px)',
@@ -174,9 +180,13 @@ const ExperienceSection = () => {
           </Button>
         </Box>
 
-        <Box sx={{ display: 'flex', gap: 6, '@media (max-width: 899px)': { flexDirection: 'column' } }}>
+        <Box sx={{ 
+          display: 'flex', 
+          gap: { xs: 3, sm: 4, md: 6 }, 
+          flexDirection: { xs: 'column', lg: 'row' }
+        }}>
           {/* Left Column - Education & Publications */}
-          <Box sx={{ flex: '0 0 50%' }}>
+          <Box sx={{ flex: { xs: '1', lg: '0 0 50%' } }}>
             {/* Education Card */}
             <Card sx={{
               backgroundColor: theme.palette.background.paper,
@@ -188,13 +198,13 @@ const ExperienceSection = () => {
                 : '0 8px 32px rgba(0,0,0,0.1)',
               mb: 4
             }}>
-              <CardContent sx={{ p: 4 }}>
+              <CardContent sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
                 <Typography 
                   variant="h3" 
                   sx={{ 
                     fontFamily: 'Raleway, sans-serif',
                     color: theme.palette.text.primary,
-                    fontSize: '26px',
+                    fontSize: { xs: '20px', sm: '24px', md: '26px' },
                     fontWeight: 700,
                     mb: 3,
                     position: 'relative',
@@ -216,16 +226,16 @@ const ExperienceSection = () => {
                 {educationData.map((item, index) => (
                   <Box key={index} sx={{ 
                     position: 'relative',
-                    padding: '0 0 30px 30px',
+                    padding: { xs: '0 0 24px 24px', sm: '0 0 30px 30px' },
                     marginTop: index === 0 ? 2 : 0,
                     borderLeft: `2px solid ${alpha(theme.palette.primary.main, 0.3)}`,
                     '&::before': {
                       content: '""',
                       position: 'absolute',
-                      width: '12px',
-                      height: '12px',
+                      width: { xs: '10px', sm: '12px' },
+                      height: { xs: '10px', sm: '12px' },
                       borderRadius: '50%',
-                      left: '-7px',
+                      left: { xs: '-5px', sm: '-7px' },
                       top: '8px',
                       backgroundColor: theme.palette.primary.main,
                       border: `3px solid ${theme.palette.background.paper}`,
@@ -238,10 +248,10 @@ const ExperienceSection = () => {
                     <Typography 
                       variant="h5" 
                       sx={{ 
-                        fontSize: '18px',
+                        fontSize: { xs: '18px', sm: '18px' },
                         fontWeight: 600,
                         color: theme.palette.text.primary,
-                        mb: 1,
+                        mb: { xs: 1.5, sm: 1 },
                         lineHeight: 1.3
                       }}
                     >
@@ -250,9 +260,9 @@ const ExperienceSection = () => {
                     <Typography 
                       variant="body2" 
                       sx={{ 
-                        fontSize: '14px',
+                        fontSize: { xs: '14px', sm: '14px' },
                         fontWeight: 600,
-                        mb: 1,
+                        mb: { xs: 1.5, sm: 1 },
                         color: theme.palette.primary.main,
                         textTransform: 'uppercase',
                         letterSpacing: '0.5px'
@@ -264,9 +274,10 @@ const ExperienceSection = () => {
                       variant="body1" 
                       sx={{ 
                         fontStyle: 'italic',
-                        mb: 2,
+                        mb: { xs: 2.5, sm: 2 },
                         color: theme.palette.text.secondary,
-                        fontSize: '15px'
+                        fontSize: { xs: '16px', sm: '15px' },
+                        fontWeight: 500
                       }}
                     >
                       {item.institution}
@@ -276,7 +287,7 @@ const ExperienceSection = () => {
                       sx={{ 
                         lineHeight: 1.6,
                         color: theme.palette.text.secondary,
-                        fontSize: '14px'
+                        fontSize: { xs: '15px', sm: '14px' }
                       }}
                     >
                       {item.description}
@@ -297,13 +308,13 @@ const ExperienceSection = () => {
                 : '0 8px 32px rgba(0,0,0,0.1)',
               mb: 4
             }}>
-              <CardContent sx={{ p: 4 }}>
+              <CardContent sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
                 <Typography 
                   variant="h3" 
                   sx={{ 
                     fontFamily: 'Raleway, sans-serif',
                     color: theme.palette.text.primary,
-                    fontSize: '26px',
+                    fontSize: { xs: '20px', sm: '24px', md: '26px' },
                     fontWeight: 700,
                     mb: 3,
                     position: 'relative',
@@ -325,16 +336,16 @@ const ExperienceSection = () => {
                 {publicationsData.map((item, index) => (
                   <Box key={index} sx={{ 
                     position: 'relative',
-                    padding: '0 0 30px 30px',
+                    padding: { xs: '0 0 20px 20px', sm: '0 0 30px 30px' },
                     marginTop: index === 0 ? 2 : 0,
                     borderLeft: `2px solid ${alpha(theme.palette.primary.main, 0.3)}`,
                     '&::before': {
                       content: '""',
                       position: 'absolute',
-                      width: '12px',
-                      height: '12px',
+                      width: { xs: '10px', sm: '12px' },
+                      height: { xs: '10px', sm: '12px' },
                       borderRadius: '50%',
-                      left: '-7px',
+                      left: { xs: '-5px', sm: '-7px' },
                       top: '8px',
                       backgroundColor: theme.palette.primary.main,
                       border: `3px solid ${theme.palette.background.paper}`,
@@ -347,7 +358,7 @@ const ExperienceSection = () => {
                     <Typography 
                       variant="h5" 
                       sx={{ 
-                        fontSize: '16px',
+                        fontSize: { xs: '15px', sm: '16px' },
                         fontWeight: 600,
                         color: theme.palette.text.primary,
                         lineHeight: 1.3,
@@ -381,13 +392,13 @@ const ExperienceSection = () => {
                 ? '0 8px 32px rgba(0,0,0,0.3)' 
                 : '0 8px 32px rgba(0,0,0,0.1)'
             }}>
-              <CardContent sx={{ p: 4 }}>
+              <CardContent sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
                 <Typography 
                   variant="h3" 
                   sx={{ 
                     fontFamily: 'Raleway, sans-serif',
                     color: theme.palette.text.primary,
-                    fontSize: '26px',
+                    fontSize: { xs: '20px', sm: '24px', md: '26px' },
                     fontWeight: 700,
                     mb: 3,
                     position: 'relative',
@@ -409,16 +420,16 @@ const ExperienceSection = () => {
                 {organizationData.map((item, index) => (
                   <Box key={index} sx={{ 
                     position: 'relative',
-                    padding: '0 0 30px 30px',
+                    padding: { xs: '0 0 20px 20px', sm: '0 0 30px 30px' },
                     marginTop: index === 0 ? 2 : 0,
                     borderLeft: `2px solid ${alpha(theme.palette.primary.main, 0.3)}`,
                     '&::before': {
                       content: '""',
                       position: 'absolute',
-                      width: '12px',
-                      height: '12px',
+                      width: { xs: '10px', sm: '12px' },
+                      height: { xs: '10px', sm: '12px' },
                       borderRadius: '50%',
-                      left: '-7px',
+                      left: { xs: '-5px', sm: '-7px' },
                       top: '8px',
                       backgroundColor: theme.palette.primary.main,
                       border: `3px solid ${theme.palette.background.paper}`,
@@ -431,7 +442,7 @@ const ExperienceSection = () => {
                     <Typography 
                       variant="h5" 
                       sx={{ 
-                        fontSize: '18px',
+                        fontSize: { xs: '16px', sm: '18px' },
                         fontWeight: 600,
                         color: theme.palette.text.primary,
                         mb: 1,
@@ -443,7 +454,7 @@ const ExperienceSection = () => {
                     <Typography 
                       variant="h6" 
                       sx={{ 
-                        fontSize: '16px',
+                        fontSize: { xs: '15px', sm: '16px' },
                         fontStyle: 'italic',
                         fontWeight: 500,
                         mb: 1,
@@ -455,7 +466,7 @@ const ExperienceSection = () => {
                     <Typography 
                       variant="body2" 
                       sx={{ 
-                        fontSize: '14px',
+                        fontSize: { xs: '12px', sm: '14px' },
                         fontWeight: 600,
                         mb: 2,
                         color: theme.palette.text.secondary,
@@ -492,13 +503,13 @@ const ExperienceSection = () => {
                 ? '0 8px 32px rgba(0,0,0,0.3)' 
                 : '0 8px 32px rgba(0,0,0,0.1)'
             }}>
-              <CardContent sx={{ p: 4 }}>
+              <CardContent sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
                 <Typography 
                   variant="h3" 
                   sx={{ 
                     fontFamily: 'Raleway, sans-serif',
                     color: theme.palette.text.primary,
-                    fontSize: '26px',
+                    fontSize: { xs: '20px', sm: '24px', md: '26px' },
                     fontWeight: 700,
                     mb: 3,
                     position: 'relative',
@@ -520,16 +531,16 @@ const ExperienceSection = () => {
                 {experienceData.map((item, index) => (
                   <Box key={index} sx={{ 
                     position: 'relative',
-                    padding: '0 0 40px 30px',
+                    padding: { xs: '0 0 24px 20px', sm: '0 0 40px 30px' },
                     marginTop: index === 0 ? 2 : 0,
                     borderLeft: `2px solid ${alpha(theme.palette.primary.main, 0.3)}`,
                     '&::before': {
                       content: '""',
                       position: 'absolute',
-                      width: '12px',
-                      height: '12px',
+                      width: { xs: '10px', sm: '12px' },
+                      height: { xs: '10px', sm: '12px' },
                       borderRadius: '50%',
-                      left: '-7px',
+                      left: { xs: '-5px', sm: '-7px' },
                       top: '8px',
                       backgroundColor: theme.palette.primary.main,
                       border: `3px solid ${theme.palette.background.paper}`,
@@ -542,7 +553,7 @@ const ExperienceSection = () => {
                     <Typography 
                       variant="h5" 
                       sx={{ 
-                        fontSize: '18px',
+                        fontSize: { xs: '16px', sm: '18px' },
                         fontWeight: 600,
                         color: theme.palette.text.primary,
                         mb: 1,
@@ -554,7 +565,7 @@ const ExperienceSection = () => {
                     <Typography 
                       variant="h6" 
                       sx={{ 
-                        fontSize: '16px',
+                        fontSize: { xs: '15px', sm: '16px' },
                         fontStyle: 'italic',
                         fontWeight: 500,
                         mb: 1,
@@ -566,7 +577,7 @@ const ExperienceSection = () => {
                     <Typography 
                       variant="body2" 
                       sx={{ 
-                        fontSize: '14px',
+                        fontSize: { xs: '12px', sm: '14px' },
                         fontWeight: 600,
                         mb: 3,
                         color: theme.palette.text.secondary,
@@ -587,9 +598,9 @@ const ExperienceSection = () => {
                             mb: 2,
                             lineHeight: 1.6,
                             color: theme.palette.text.secondary,
-                            fontSize: '14px',
+                            fontSize: { xs: '12px', sm: '14px' },
                             position: 'relative',
-                            paddingLeft: '20px',
+                            paddingLeft: { xs: '16px', sm: '20px' },
                             '&::before': {
                               content: '"•"',
                               color: theme.palette.primary.main,

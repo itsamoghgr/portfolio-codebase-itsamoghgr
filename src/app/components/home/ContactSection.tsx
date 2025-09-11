@@ -34,8 +34,8 @@ const ContactSection = () => {
     {
       icon: <Email sx={{ fontSize: '1.8rem', color: theme.palette.primary.main }} />,
       title: 'Email',
-      value: 'amoghgr64@gmail.com',
-      href: 'mailto:amoghgr64@gmail.com'
+      value: 'amoghr@gwu.edu',
+      href: 'mailto:amoghr@gwu.edu'
     }
   ];
 
@@ -89,39 +89,64 @@ const ContactSection = () => {
         {/* Contact Info Cards */}
         <Fade in timeout={800}>
           <Box sx={{ mb: 4 }}>
-            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(3, 1fr)' }, gap: 4, justifyContent: 'center' }}>
+            <Box sx={{ 
+              display: 'grid', 
+              gridTemplateColumns: { 
+                xs: 'repeat(auto-fit, minmax(280px, 1fr))', 
+                sm: 'repeat(2, 1fr)', 
+                lg: 'repeat(3, 1fr)' 
+              }, 
+              gap: { xs: 3, sm: 4 }, 
+              justifyContent: 'center',
+              justifyItems: 'center',
+              maxWidth: '1000px',
+              mx: 'auto'
+            }}>
               {contactInfo.map((info, index) => (
-                <Box key={index}>
-                  <Card
-                    component={info.href ? "a" : "div"}
-                    href={info.href}
-                    target={info.href ? "_blank" : undefined}
-                    rel={info.href ? "noopener noreferrer" : undefined}
-                    sx={{
-                      backgroundColor: theme.palette.background.paper,
-                      backdropFilter: 'blur(20px)',
-                      border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
-                      borderRadius: 3,
+                <Card
+                  key={index}
+                  component={info.href ? "a" : "div"}
+                  href={info.href}
+                  target={info.href ? "_blank" : undefined}
+                  rel={info.href ? "noopener noreferrer" : undefined}
+                  sx={{
+                    backgroundColor: theme.palette.background.paper,
+                    backdropFilter: 'blur(20px)',
+                    border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+                    borderRadius: 3,
+                    boxShadow: isDarkMode 
+                      ? '0 8px 32px rgba(0,0,0,0.3)' 
+                      : '0 8px 32px rgba(0,0,0,0.1)',
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                    textDecoration: 'none',
+                    cursor: info.href ? 'pointer' : 'default',
+                    width: '100%',
+                    maxWidth: { xs: '320px', sm: 'none' },
+                    height: { xs: 'auto', sm: '200px' },
+                    display: 'flex',
+                    flexDirection: 'column',
+                    '&:hover': {
+                      transform: 'translateY(-4px)',
                       boxShadow: isDarkMode 
-                        ? '0 8px 32px rgba(0,0,0,0.3)' 
-                        : '0 8px 32px rgba(0,0,0,0.1)',
-                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                      textDecoration: 'none',
-                      cursor: info.href ? 'pointer' : 'default',
-                      '&:hover': {
-                        transform: 'translateY(-4px)',
-                        boxShadow: isDarkMode 
-                          ? `0 12px 40px ${alpha(theme.palette.primary.main, 0.2)}` 
-                          : `0 12px 40px ${alpha(theme.palette.primary.main, 0.15)}`
-                      }
-                    }}
-                  >
-                    <CardContent sx={{ p: 4, textAlign: 'center' }}>
+                        ? `0 12px 40px ${alpha(theme.palette.primary.main, 0.2)}` 
+                        : `0 12px 40px ${alpha(theme.palette.primary.main, 0.15)}`
+                    }
+                  }}
+                >
+                    <CardContent sx={{ 
+                      p: { xs: 3, sm: 4 }, 
+                      textAlign: 'center',
+                      flex: 1,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'center',
+                      alignItems: 'center'
+                    }}>
                       <Box 
                         sx={{ 
-                          mb: 3,
-                          width: '80px',
-                          height: '80px',
+                          mb: { xs: 2, sm: 3 },
+                          width: { xs: '70px', sm: '80px' },
+                          height: { xs: '70px', sm: '80px' },
                           borderRadius: '50%',
                           border: `2px solid ${alpha(theme.palette.primary.main, 0.2)}`,
                           display: 'flex',
@@ -145,8 +170,8 @@ const ContactSection = () => {
                           fontFamily: 'Raleway, sans-serif',
                           fontWeight: 600,
                           color: theme.palette.text.primary,
-                          mb: 1,
-                          fontSize: '1.3rem'
+                          mb: { xs: 0.5, sm: 1 },
+                          fontSize: { xs: '1.2rem', sm: '1.3rem' }
                         }}
                       >
                         {info.title}
@@ -155,7 +180,7 @@ const ContactSection = () => {
                         variant="body1" 
                         sx={{ 
                           color: theme.palette.text.secondary,
-                          fontSize: '1rem',
+                          fontSize: { xs: '0.95rem', sm: '1rem' },
                           fontWeight: 500
                         }}
                       >
@@ -163,7 +188,6 @@ const ContactSection = () => {
                       </Typography>
                     </CardContent>
                   </Card>
-                </Box>
               ))}
             </Box>
           </Box>

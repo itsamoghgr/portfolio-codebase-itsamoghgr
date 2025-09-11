@@ -104,7 +104,7 @@ const Navbar = () => {
             : 'rgba(255, 255, 255, 0.95)',
           backdropFilter: 'blur(20px)',
           color: theme.palette.text.primary,
-          padding: '16px 0',
+          padding: { xs: '12px 0', md: '16px 0' },
           transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
           zIndex: 1100,
           borderBottom: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
@@ -124,7 +124,7 @@ const Navbar = () => {
             variant="h4" 
             sx={{
               fontFamily: 'Raleway, sans-serif',
-              fontSize: '28px',
+              fontSize: { xs: '24px', sm: '28px' },
               margin: 0,
               fontWeight: 800,
               background: 'linear-gradient(135deg, #0078ff 0%, #64ffda 100%)',
@@ -186,7 +186,7 @@ const Navbar = () => {
             </IconButton>
           </Box>
 
-          <Box sx={{ display: { md: 'none' }, alignItems: 'center', gap: 1 }}>
+          <Box sx={{ display: { xs: 'flex', md: 'none' }, alignItems: 'center', gap: 2 }}>
             <IconButton
               onClick={toggleTheme}
               sx={{

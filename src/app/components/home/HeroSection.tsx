@@ -51,7 +51,8 @@ const HeroSection = () => {
     <Box
       id="home"
       sx={{
-        height: '100vh',
+        minHeight: '100vh',
+        height: { xs: 'auto', md: '100vh' },
         background: isDarkMode 
           ? 'radial-gradient(ellipse at center, rgba(0, 120, 255, 0.15) 0%, rgba(10, 10, 10, 1) 70%)'
           : 'radial-gradient(ellipse at center, rgba(0, 120, 255, 0.05) 0%, rgba(248, 249, 250, 1) 70%)',
@@ -61,7 +62,9 @@ const HeroSection = () => {
         alignItems: 'center',
         justifyContent: 'center',
         position: 'relative',
-        paddingTop: '92px',
+        paddingTop: { xs: '120px', md: '92px' },
+        paddingBottom: { xs: '60px', md: '0' },
+        paddingX: { xs: 2, sm: 3, md: 0 },
         overflow: 'hidden'
       }}
     >
@@ -69,29 +72,31 @@ const HeroSection = () => {
       <Box
         sx={{
           position: 'absolute',
-          top: '20%',
-          left: '10%',
-          width: '300px',
-          height: '300px',
+          top: { xs: '15%', md: '20%' },
+          left: { xs: '5%', md: '10%' },
+          width: { xs: '200px', md: '300px' },
+          height: { xs: '200px', md: '300px' },
           borderRadius: '50%',
           background: `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.1)} 0%, ${alpha(theme.palette.secondary.main, 0.05)} 100%)`,
           filter: 'blur(40px)',
           animation: 'float 6s ease-in-out infinite',
-          zIndex: 1
+          zIndex: 1,
+          display: { xs: 'none', sm: 'block' }
         }}
       />
       <Box
         sx={{
           position: 'absolute',
-          bottom: '20%',
-          right: '10%',
-          width: '200px',
-          height: '200px',
+          bottom: { xs: '15%', md: '20%' },
+          right: { xs: '5%', md: '10%' },
+          width: { xs: '150px', md: '200px' },
+          height: { xs: '150px', md: '200px' },
           borderRadius: '50%',
           background: `linear-gradient(135deg, ${alpha(theme.palette.secondary.main, 0.1)} 0%, ${alpha(theme.palette.primary.main, 0.05)} 100%)`,
           filter: 'blur(30px)',
           animation: 'float 4s ease-in-out infinite reverse',
-          zIndex: 1
+          zIndex: 1,
+          display: { xs: 'none', sm: 'block' }
         }}
       />
 
@@ -141,10 +146,10 @@ const HeroSection = () => {
           <Typography 
             variant="h1"
             sx={{ 
-              fontSize: { xs: '40px', md: '72px' },
+              fontSize: { xs: '32px', sm: '48px', md: '72px' },
               fontWeight: 800,
               margin: 0,
-              mb: 2,
+              mb: { xs: 1, md: 2 },
               fontFamily: 'Raleway, sans-serif',
               background: isDarkMode
                 ? 'linear-gradient(135deg, #ffffff 0%, #b3b3b3 100%)'
@@ -152,7 +157,8 @@ const HeroSection = () => {
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
               letterSpacing: '-0.02em',
-              lineHeight: 1.2
+              lineHeight: { xs: 1.1, md: 1.2 },
+              textAlign: 'center'
             }}
           >
             Amogh Ramagiri
@@ -161,13 +167,14 @@ const HeroSection = () => {
           <Typography 
             variant="h2"
             sx={{ 
-              fontSize: { xs: '24px', md: '42px' },
+              fontSize: { xs: '20px', sm: '28px', md: '42px' },
               fontWeight: 600,
-              margin: '10px 0 0 0',
+              margin: { xs: '8px 0 0 0', md: '10px 0 0 0' },
               fontFamily: 'Raleway, sans-serif',
               color: theme.palette.primary.main,
-              minHeight: { xs: '32px', md: '50px' },
-              lineHeight: 1.2
+              minHeight: { xs: '28px', sm: '36px', md: '50px' },
+              lineHeight: 1.2,
+              textAlign: 'center'
             }}
           >
             <span style={{ letterSpacing: '1px' }}>
@@ -185,12 +192,14 @@ const HeroSection = () => {
           <Typography 
             variant="body1"
             sx={{ 
-              fontSize: { xs: '16px', md: '20px' },
+              fontSize: { xs: '14px', sm: '16px', md: '20px' },
               fontWeight: 400,
-              mt: 4,
-              maxWidth: '600px',
+              mt: { xs: 3, md: 4 },
+              maxWidth: { xs: '100%', sm: '500px', md: '600px' },
               lineHeight: 1.7,
-              color: theme.palette.text.secondary
+              color: theme.palette.text.secondary,
+              textAlign: 'center',
+              px: { xs: 1, sm: 0 }
             }}
           >
             Passionate about transforming data into insights and building innovative solutions 
@@ -202,14 +211,15 @@ const HeroSection = () => {
       {/* Modern Social Links */}
       <Box
         sx={{
-          position: 'absolute',
-          bottom: 40,
-          left: '50%',
-          transform: 'translateX(-50%)',
-          zIndex: 1000
+          position: { xs: 'relative', md: 'absolute' },
+          bottom: { xs: 'auto', md: 40 },
+          left: { xs: 'auto', md: '50%' },
+          transform: { xs: 'none', md: 'translateX(-50%)' },
+          zIndex: 1000,
+          mt: { xs: 4, md: 0 }
         }}
       >
-        <Stack direction="row" spacing={1}>
+        <Stack direction="row" spacing={{ xs: 2, md: 1 }} justifyContent="center">
           {[
             { Icon: Twitter, href: 'https://www.x.com/theamoghgr', color: '#1da1f2' },
             { Icon: Instagram, href: 'https://www.instagram.com/amoghr.shots', color: '#e4405f' },
