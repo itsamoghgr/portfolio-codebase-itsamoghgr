@@ -5,12 +5,10 @@ import {
   Box,
   Typography,
   Container,
-  Grid,
   TextField,
   Button,
   Card,
   CardContent,
-  IconButton,
   useTheme,
   alpha,
   Fade
@@ -113,7 +111,7 @@ const ContactSection = () => {
                 lineHeight: 1.6
               }}
             >
-              I'm always open to discussing new opportunities, interesting projects, or just having a conversation about data science and technology. Feel free to reach out!
+              I&apos;m always open to discussing new opportunities, interesting projects, or just having a conversation about data science and technology. Feel free to reach out!
             </Typography>
           </Box>
         </Fade>
@@ -121,9 +119,9 @@ const ContactSection = () => {
         {/* Contact Info Cards */}
         <Fade in timeout={800}>
           <Box sx={{ mb: 8 }}>
-            <Grid container spacing={4} justifyContent="center">
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(3, 1fr)' }, gap: 4, justifyContent: 'center' }}>
               {contactInfo.map((info, index) => (
-                <Grid item xs={12} sm={6} lg={4} key={index}>
+                <Box key={index}>
                   <Card
                     component={info.href ? "a" : "div"}
                     href={info.href}
@@ -195,9 +193,9 @@ const ContactSection = () => {
                       </Typography>
                     </CardContent>
                   </Card>
-                </Grid>
+                </Box>
               ))}
-            </Grid>
+            </Box>
           </Box>
         </Fade>
 
@@ -239,7 +237,7 @@ const ContactSection = () => {
                   fontSize: '0.95rem'
                 }}
               >
-                I'll get back to you as soon as possible
+                I&apos;ll get back to you as soon as possible
               </Typography>
 
               <Box component="form" onSubmit={handleSubmit}>

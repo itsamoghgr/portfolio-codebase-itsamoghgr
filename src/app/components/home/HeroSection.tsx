@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import {
   Box,
   Typography,
@@ -16,7 +16,7 @@ import { useTheme as useCustomTheme } from '../../../contexts/ThemeContext';
 const HeroSection = () => {
   const [displayedText, setDisplayedText] = useState('');
   const [currentIndex, setCurrentIndex] = useState(0);
-  const typedItems = ['Student', 'Data Scientist', 'Developer', 'Photographer', 'Traveller'];
+  const typedItems = useMemo(() => ['Student', 'Data Scientist', 'Developer', 'Photographer', 'Traveller'], []);
   
   const { isDarkMode } = useCustomTheme();
   const theme = useTheme();
@@ -45,7 +45,7 @@ const HeroSection = () => {
     }, isDeleting ? 50 : 100);
 
     return () => clearInterval(typeInterval);
-  }, [currentIndex]);
+  }, [currentIndex, typedItems]);
 
   return (
     <Box
@@ -135,7 +135,7 @@ const HeroSection = () => {
               mb: 2
             }}
           >
-            Hello, I'm
+            Hello, I&apos;m
           </Typography>
           
           <Typography 

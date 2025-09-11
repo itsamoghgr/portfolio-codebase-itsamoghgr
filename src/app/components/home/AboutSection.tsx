@@ -241,7 +241,7 @@ const AboutSection = () => {
                   Technical Skills
                 </Typography>
                 
-                {skillCategories.map((category, categoryIndex) => (
+                {skillCategories.map((category) => (
                   <Box key={category.category} sx={{ mb: 3 }}>
                     <Typography
                       variant="h6"
@@ -266,7 +266,7 @@ const AboutSection = () => {
                         mb: 2
                       }}
                     >
-                      {category.skills.map((skill, skillIndex) => (
+                      {category.skills.map((skill) => (
                         <Box
                           key={skill.name}
                           sx={{
@@ -358,7 +358,7 @@ const AboutSection = () => {
                   mb: 3
                 }}
               >
-                I'm a data enthusiast and problem solver with a strong interest in applying data science to the finance and banking industry. Currently, I'm working as a Data Scientist Intern at Fulton Bank, where I focus on creating dashboards, building reports, and developing KPIs that help teams make smarter business decisions.
+                I&apos;m a data enthusiast and problem solver with a strong interest in applying data science to the finance and banking industry. Currently, I&apos;m working as a Data Scientist Intern at Fulton Bank, where I focus on creating dashboards, building reports, and developing KPIs that help teams make smarter business decisions.
               </Typography>
               
               <Typography 
@@ -371,7 +371,7 @@ const AboutSection = () => {
                   mb: 3
                 }}
               >
-                Day to day, I work with SQL and Python to handle large datasets, perform data analysis, and engineer meaningful features that bring clarity to complex problems. I enjoy turning raw data into stories that people can act on — whether it's identifying trends, improving processes, or supporting strategic goals.
+                Day to day, I work with SQL and Python to handle large datasets, perform data analysis, and engineer meaningful features that bring clarity to complex problems. I enjoy turning raw data into stories that people can act on — whether it&apos;s identifying trends, improving processes, or supporting strategic goals.
               </Typography>
 
               <Typography 
@@ -384,7 +384,7 @@ const AboutSection = () => {
                   mb: 4
                 }}
               >
-                With a background in computer science and experience across India, Taiwan, and the U.S., I bring a well-rounded, global perspective to my work. I'm passionate about making data useful, understandable, and impactful.
+                With a background in computer science and experience across India, Taiwan, and the U.S., I bring a well-rounded, global perspective to my work. I&apos;m passionate about making data useful, understandable, and impactful.
               </Typography>
 
               <Typography 

@@ -4,7 +4,6 @@ import React, { useEffect, useState } from 'react';
 import {
   Box,
   Typography,
-  Grid,
   Card,
   CardContent,
   Avatar,
@@ -31,8 +30,8 @@ export default function AdminDashboardPage() {
       setStats({
         totalProjects: projects.length,
         totalExperiences: experiences.length,
-        completedProjects: projects.filter((p: any) => p.status === 'completed').length,
-        inProgressProjects: projects.filter((p: any) => p.status === 'in-progress').length
+        completedProjects: projects.filter((p: { status?: string }) => p.status === 'completed').length,
+        inProgressProjects: projects.filter((p: { status?: string }) => p.status === 'in-progress').length
       });
     });
   }, []);
@@ -73,29 +72,27 @@ export default function AdminDashboardPage() {
         Manage your portfolio content and track your progress
       </Typography>
 
-      <Grid container spacing={3}>
+      <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 3 }}>
         {dashboardCards.map((card, index) => (
-          <Grid item xs={12} sm={6} md={3} key={index}>
-            <Card>
-              <CardContent>
-                <Stack direction="row" alignItems="center" spacing={2}>
-                  <Avatar sx={{ bgcolor: card.color, width: 50, height: 50 }}>
-                    {card.icon}
-                  </Avatar>
-                  <Box>
-                    <Typography variant="h4" fontWeight="bold">
-                      {card.value}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {card.title}
-                    </Typography>
-                  </Box>
-                </Stack>
-              </CardContent>
-            </Card>
-          </Grid>
+          <Card key={index}>
+            <CardContent>
+              <Stack direction="row" alignItems="center" spacing={2}>
+                <Avatar sx={{ bgcolor: card.color, width: 50, height: 50 }}>
+                  {card.icon}
+                </Avatar>
+                <Box>
+                  <Typography variant="h4" fontWeight="bold">
+                    {card.value}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {card.title}
+                  </Typography>
+                </Box>
+              </Stack>
+            </CardContent>
+          </Card>
         ))}
-      </Grid>
+      </Box>
 
       <Box sx={{ mt: 4 }}>
         <Typography variant="h6" gutterBottom>

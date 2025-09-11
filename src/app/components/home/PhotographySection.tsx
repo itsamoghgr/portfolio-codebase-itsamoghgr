@@ -5,7 +5,6 @@ import {
   Box,
   Typography,
   Container,
-  Grid,
   Card,
   CardMedia,
   Button
@@ -45,9 +44,9 @@ const PhotographySection = () => {
         </Box>
 
         {/* Photo Grid */}
-        <Grid container spacing={4}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(3, 1fr)' }, gap: 4 }}>
           {photos.map((photo, index) => (
-            <Grid item xs={12} sm={6} lg={4} key={index}>
+            <Box key={index}>
               <Card 
                 sx={{ 
                   borderRadius: 2,
@@ -71,9 +70,9 @@ const PhotographySection = () => {
                   }}
                 />
               </Card>
-            </Grid>
+            </Box>
           ))}
-        </Grid>
+        </Box>
 
         {/* Instagram Link */}
         <Box sx={{ textAlign: 'center', mt: 6 }}>
