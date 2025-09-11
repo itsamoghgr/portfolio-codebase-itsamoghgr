@@ -112,7 +112,7 @@ const ExperienceSection = () => {
   ];
 
   return (
-    <Box id="resume" sx={{ py: 8, backgroundColor: theme.palette.background.default, minHeight: '100vh' }}>
+    <Box id="resume" sx={{ py: 4, backgroundColor: theme.palette.background.default, minHeight: '100vh' }}>
       <Container maxWidth="lg">
         {/* Centered Section Title with Download Button */}
         <Box sx={{ 

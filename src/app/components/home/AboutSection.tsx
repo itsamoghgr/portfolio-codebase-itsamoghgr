@@ -61,38 +61,12 @@ const AboutSection = () => {
     <Box 
       id="about" 
       sx={{ 
-        py: 8, 
+        py: 4, 
         backgroundColor: theme.palette.background.default,
         minHeight: '100vh'
       }}
     >
       <Container maxWidth="lg">
-        {/* Section Title */}
-        <Box sx={{ textAlign: 'center', mb: 6 }}>
-          <Typography 
-            variant="h2" 
-            sx={{ 
-              fontFamily: 'Raleway, sans-serif',
-              fontWeight: 'bold',
-              color: theme.palette.text.primary,
-              fontSize: '2rem',
-              position: 'relative',
-              display: 'inline-block',
-              '&::after': {
-                content: '""',
-                position: 'absolute',
-                bottom: '-10px',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                width: '64px',
-                height: '3px',
-                backgroundColor: theme.palette.primary.main
-              }
-            }}
-          >
-            About
-          </Typography>
-        </Box>
 
         <Card
           sx={{
