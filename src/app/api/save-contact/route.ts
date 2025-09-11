@@ -12,6 +12,11 @@ interface ContactData {
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('=== Contact API Called ===');
+    console.log('Supabase URL exists:', !!process.env.NEXT_PUBLIC_SUPABASE_URL);
+    console.log('Supabase Key exists:', !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+    console.log('Supabase URL preview:', process.env.NEXT_PUBLIC_SUPABASE_URL?.slice(0, 30) + '...');
+    
     // Check if Supabase is configured
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 
         process.env.NEXT_PUBLIC_SUPABASE_URL === 'https://placeholder.supabase.co') {
@@ -50,9 +55,19 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) {
-      console.error('Supabase error:', error);
+      console.error('Supabase error details:', {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code
+      });
       return NextResponse.json(
-        { error: 'Failed to save contact data', details: error.message },
+        { 
+          error: 'Failed to save contact data', 
+          details: error.message,
+          code: error.code,
+          supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL?.slice(0, 30) + '...'
+        },
         { status: 500 }
       );
     }
