@@ -4,6 +4,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import Navbar from '@/components/common/navbar';
 import Footer from '@/components/common/footer';
+import ChatWidget from '@/app/components/chatbot/ChatWidget';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -21,6 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <Navbar />
           {children}
           <Footer />
+          <ChatWidget />
         </ThemeProvider>
       </body>
     </html>
