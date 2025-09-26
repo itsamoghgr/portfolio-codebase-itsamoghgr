@@ -9,15 +9,20 @@ import {
   Button,
   IconButton,
   Avatar,
-  Chip,
   useTheme,
-  alpha,
-  CircularProgress
+  alpha
 } from '@mui/material';
-import { 
-  Close as CloseIcon, 
-  Send as SendIcon, 
-  SmartToy as BotIcon
+import {
+  Close as CloseIcon,
+  Send as SendIcon,
+  SmartToy as BotIcon,
+  Fullscreen as ExpandIcon,
+  FullscreenExit as CollapseIcon,
+  Email as EmailIcon,
+  ContactMail as ContactIcon,
+  Work as ProjectIcon,
+  Person as ExperienceIcon,
+  School as EducationIcon
 } from '@mui/icons-material';
 import { useTheme as useCustomTheme } from '../../../contexts/ThemeContext';
 
@@ -26,17 +31,12 @@ interface Message {
   text: string;
   isBot: boolean;
   timestamp: Date;
-  options?: string[];
 }
 
-interface UserData {
-  fullName: string;
-  email: string;
-  phoneNumber: string;
-  message: string;
+interface ConversationMessage {
+  role: 'user' | 'assistant';
+  content: string;
 }
-
-type ConversationStep = 'greeting' | 'name' | 'email' | 'phone' | 'message' | 'completed';
 
 interface ChatModalProps {
   isOpen: boolean;
@@ -47,19 +47,152 @@ interface ChatModalProps {
 const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, onNewMessage }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [currentInput, setCurrentInput] = useState('');
-  const [currentStep, setCurrentStep] = useState<ConversationStep>('greeting');
-  const [userData, setUserData] = useState<UserData>({
+  const [conversationHistory, setConversationHistory] = useState<ConversationMessage[]>([]);
+  const [isTyping, setIsTyping] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [showContactForm, setShowContactForm] = useState(false);
+  const [showQuickQuestions, setShowQuickQuestions] = useState(false);
+  const [quickQuestionType, setQuickQuestionType] = useState<'initial' | 'post-contact'>('initial');
+  const [contactFormSubmitted, setContactFormSubmitted] = useState(false);
+  const [contactFormData, setContactFormData] = useState({
     fullName: '',
     email: '',
     phoneNumber: '',
     message: ''
   });
-  const [isTyping, setIsTyping] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  
+
   const { isDarkMode } = useCustomTheme();
   const theme = useTheme();
+
+  // Custom close handler - just close without thank you message
+  const handleClose = () => {
+    onClose();
+  };
+
+  // Parse inline formatting like **bold text** and links
+  const parseInlineFormatting = (text: string) => {
+    // First split by URLs (both absolute and relative)
+    const urlRegex = /(https?:\/\/[^\s]+|\/[^\s]*\.pdf)/g;
+    const parts = text.split(urlRegex);
+
+    return parts.map((part, index) => {
+      // If it's a URL, make it clickable
+      if (part.match(urlRegex)) {
+        const isRelativeUrl = part.startsWith('/');
+        const displayText = isRelativeUrl && part.includes('.pdf') ? 'Download Resume' : part;
+
+        return (
+          <Box
+            key={index}
+            component="a"
+            href={part}
+            target="_blank"
+            rel="noopener noreferrer"
+            sx={{
+              color: theme.palette.primary.main,
+              textDecoration: 'underline',
+              fontWeight: 500,
+              '&:hover': {
+                color: theme.palette.primary.dark,
+                textDecoration: 'underline'
+              }
+            }}
+          >
+            {displayText}
+          </Box>
+        );
+      }
+
+      // Then handle bold formatting within non-URL parts
+      const boldParts = part.split(/(\*\*.*?\*\*)/g);
+      return boldParts.map((boldPart, boldIndex) => {
+        if (boldPart.match(/^\*\*.*\*\*$/)) {
+          const boldText = boldPart.replace(/\*\*/g, '');
+          return (
+            <Box key={`${index}-${boldIndex}`} component="span" sx={{ fontWeight: 600, color: theme.palette.primary.main }}>
+              {boldText}
+            </Box>
+          );
+        }
+        return boldPart;
+      });
+    });
+  };
+
+  // Format message to handle markdown-style formatting
+  const formatMessage = (text: string) => {
+    const lines = text.split('\n');
+    const formattedElements: React.ReactNode[] = [];
+
+    lines.forEach((line, index) => {
+      const trimmedLine = line.trim();
+
+      // Handle different line types
+      if (trimmedLine.match(/^\*\*.*\*\*.*$/)) {
+        // Bold headers with emojis
+        const cleanText = trimmedLine.replace(/\*\*/g, '');
+        formattedElements.push(
+          <Typography
+            key={`header-${index}`}
+            variant="subtitle2"
+            sx={{
+              fontWeight: 700,
+              mb: 1.5,
+              mt: index > 0 ? 2 : 0,
+              color: theme.palette.primary.main,
+              fontSize: '1rem'
+            }}
+          >
+            {cleanText}
+          </Typography>
+        );
+      } else if (trimmedLine.startsWith('• ')) {
+        // Bullet points with better spacing and inline formatting including links
+        const bulletText = trimmedLine.substring(2);
+        const formattedBulletText = parseInlineFormatting(bulletText);
+        formattedElements.push(
+          <Box key={`bullet-${index}`} sx={{ display: 'flex', alignItems: 'flex-start', mb: 1, ml: 1 }}>
+            <Typography
+              variant="body2"
+              sx={{
+                mr: 1,
+                color: theme.palette.primary.main,
+                fontWeight: 600,
+                minWidth: '10px'
+              }}
+            >
+              •
+            </Typography>
+            <Box sx={{ flex: 1, lineHeight: 1.5, fontSize: '0.875rem' }}>
+              {formattedBulletText}
+            </Box>
+          </Box>
+        );
+      } else if (trimmedLine === '') {
+        // Empty lines for spacing
+        formattedElements.push(<Box key={`space-${index}`} sx={{ height: 12 }} />);
+      } else if (trimmedLine.length > 0) {
+        // Regular text with inline bold formatting and links
+        const formattedText = parseInlineFormatting(trimmedLine);
+        formattedElements.push(
+          <Box
+            key={`text-${index}`}
+            sx={{
+              mb: 1,
+              lineHeight: 1.6,
+              color: theme.palette.text.primary,
+              fontSize: '0.875rem'
+            }}
+          >
+            {formattedText}
+          </Box>
+        );
+      }
+    });
+
+    return <Box>{formattedElements}</Box>;
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -69,20 +202,30 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, onNewMessage }) 
     scrollToBottom();
   }, [messages]);
 
-  const addBotMessage = useCallback((text: string, options?: string[]) => {
-    setIsTyping(true);
-    setTimeout(() => {
-      const newMessage: Message = {
-        id: Date.now().toString(),
-        text,
-        isBot: true,
-        timestamp: new Date(),
-        options
-      };
-      setMessages(prev => [...prev, newMessage]);
-      setIsTyping(false);
-      onNewMessage();
-    }, 1000 + Math.random() * 1000); // Simulate typing delay
+  const addBotMessage = useCallback((text: string) => {
+    const newMessage: Message = {
+      id: Date.now().toString(),
+      text,
+      isBot: true,
+      timestamp: new Date()
+    };
+    setMessages(prev => [...prev, newMessage]);
+
+    // Add to conversation history
+    setConversationHistory(prev => [...prev, { role: 'assistant', content: text }]);
+
+    // Auto-expand for long responses
+    const wordCount = text.split(' ').length;
+    const lineCount = text.split('\n').length;
+    const hasLinks = text.includes('http');
+    const hasBulletPoints = text.includes('•');
+
+    // Expand if response is long or has structured content
+    if (wordCount > 80 || lineCount > 8 || (hasLinks && hasBulletPoints)) {
+      setIsExpanded(true);
+    }
+
+    onNewMessage();
   }, [onNewMessage]);
 
   const addUserMessage = (text: string) => {
@@ -93,126 +236,147 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, onNewMessage }) 
       timestamp: new Date()
     };
     setMessages(prev => [...prev, newMessage]);
+
+    // Add to conversation history
+    setConversationHistory(prev => [...prev, { role: 'user', content: text }]);
   };
 
   const initializeChat = useCallback(() => {
     setTimeout(() => {
-      addBotMessage("Hi! I'm Amogh's assistant. What's your name?");
-      setCurrentStep('name');
+      addBotMessage("Hi! I'm Amogh's AI assistant. I can answer questions about his experience, projects, skills, and career. What would you like to know?");
+      setShowQuickQuestions(true);
     }, 500);
   }, [addBotMessage]);
 
+  // Clear chat on page refresh and setup session persistence for chat close/reopen only
+  useEffect(() => {
+    // Clear any existing chat data on page refresh
+    sessionStorage.removeItem('chatMessages');
+    sessionStorage.removeItem('chatConversationHistory');
+
+    // Set a flag to track that this is a fresh page load
+    sessionStorage.setItem('chatPageRefresh', 'true');
+  }, []);
+
   useEffect(() => {
     if (isOpen && messages.length === 0) {
+      // Check if this is a page refresh or chat reopen
+      const isPageRefresh = sessionStorage.getItem('chatPageRefresh') === 'true';
+
+      if (!isPageRefresh) {
+        // Try to load previous chat session
+        const savedMessages = sessionStorage.getItem('chatMessages');
+        const savedConversationHistory = sessionStorage.getItem('chatConversationHistory');
+
+        if (savedMessages) {
+          try {
+            const parsedMessages = JSON.parse(savedMessages);
+            const parsedHistory = savedConversationHistory ? JSON.parse(savedConversationHistory) : [];
+            setMessages(parsedMessages);
+            setConversationHistory(parsedHistory);
+
+            // Show quick questions if we only have the initial greeting message
+            if (parsedMessages.length === 1 && parsedMessages[0].isBot) {
+              setShowQuickQuestions(true);
+            }
+            return; // Don't initialize new chat if we loaded existing one
+          } catch (error) {
+            console.error('Error loading chat history:', error);
+            sessionStorage.removeItem('chatMessages');
+            sessionStorage.removeItem('chatConversationHistory');
+          }
+        }
+      }
+
+      // Clear the page refresh flag and start new chat
+      sessionStorage.removeItem('chatPageRefresh');
       initializeChat();
     }
   }, [isOpen, messages.length, initializeChat]);
 
-  const validateEmail = (email: string): boolean => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
+  // Save chat to sessionStorage for chat close/reopen only (not across page refreshes)
+  useEffect(() => {
+    if (messages.length > 0 && sessionStorage.getItem('chatPageRefresh') !== 'true') {
+      sessionStorage.setItem('chatMessages', JSON.stringify(messages));
+    }
+  }, [messages]);
 
-  const validatePhone = (phone: string): boolean => {
-    const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
-    return phone === '' || phoneRegex.test(phone.replace(/[\s\-\(\)]/g, ''));
-  };
+  useEffect(() => {
+    if (conversationHistory.length > 0 && sessionStorage.getItem('chatPageRefresh') !== 'true') {
+      sessionStorage.setItem('chatConversationHistory', JSON.stringify(conversationHistory));
+    }
+  }, [conversationHistory]);
 
-  const saveUserData = async (data: UserData) => {
+  const sendMessageToAI = async (userMessage: string) => {
     try {
-      setIsSaving(true);
-      const response = await fetch('/api/save-contact', {
+      setIsTyping(true);
+
+      const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          ...data,
-          timestamp: new Date().toISOString(),
-          source: 'chatbot'
+          message: userMessage,
+          conversationHistory
         }),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error('Failed to save contact data');
+        throw new Error(data.error || 'Failed to get AI response');
       }
 
-      return true;
-    } catch (error) {
-      console.error('Error saving contact data:', error);
-      return false;
-    } finally {
-      setIsSaving(false);
+      // Simulate typing delay for better UX
+      setTimeout(() => {
+        setIsTyping(false);
+        addBotMessage(data.response);
+      }, 800 + Math.random() * 1200);
+
+    } catch (error: unknown) {
+      console.error('Error getting AI response:', error);
+      setIsTyping(false);
+      addBotMessage('Sorry, I\'m having trouble connecting right now. Please try asking your question again, or feel free to contact Amogh directly through the contact form on his portfolio.');
     }
   };
 
   const handleSend = async () => {
-    if (!currentInput.trim()) return;
+    if (!currentInput.trim() || isTyping) return;
 
     const input = currentInput.trim();
-    addUserMessage(input);
-    setCurrentInput('');
+    setShowQuickQuestions(false); // Hide quick questions when user types
 
-    switch (currentStep) {
-      case 'name':
-        setUserData(prev => ({ ...prev, fullName: input }));
-        addBotMessage(`Nice to meet you, ${input}! What's your email?`);
-        setCurrentStep('email');
-        break;
+    // Check if the message is about contacting Amogh
+    const contactKeywords = ['contact', 'reach', 'get in touch', 'hire', 'collaborate', 'email', 'phone'];
+    const isContactQuery = contactKeywords.some(keyword =>
+      input.toLowerCase().includes(keyword) &&
+      (input.toLowerCase().includes('amogh') || input.toLowerCase().includes('you'))
+    );
 
-      case 'email':
-        if (!validateEmail(input)) {
-          addBotMessage("That doesn't look like a valid email address. Could you please provide a valid email?");
-          return;
-        }
-        setUserData(prev => ({ ...prev, email: input }));
-        addBotMessage("Got it. Do you want to add your phone number?", ["Yes, add phone", "Skip phone number"]);
-        setCurrentStep('phone');
-        break;
+    if (isContactQuery) {
+      // Add user message
+      addUserMessage(input);
 
-      case 'phone':
-        if (input.toLowerCase().includes('skip') || input.toLowerCase().includes('no')) {
-          setUserData(prev => ({ ...prev, phoneNumber: '' }));
-          addBotMessage("What would you like to talk about?");
-          setCurrentStep('message');
-        } else if (validatePhone(input)) {
-          setUserData(prev => ({ ...prev, phoneNumber: input }));
-          addBotMessage("What would you like to talk about?");
-          setCurrentStep('message');
-        } else {
-          addBotMessage("That doesn't look like a valid phone number. Could you provide a valid phone number or type 'skip'?");
-        }
-        break;
-
-      case 'message':
-        const finalData = { ...userData, message: input };
-        setUserData(finalData);
-        
-        addBotMessage("Thank you! I'm saving your details and will get back to you soon.", undefined);
-        
-        const saved = await saveUserData(finalData);
-        
-        if (saved) {
-          setTimeout(() => {
-            addBotMessage("✅ Your message has been saved successfully! I'll get back to you within 24 hours.");
-          }, 1500);
-        } else {
-          setTimeout(() => {
-            addBotMessage("❌ Sorry, there was an issue saving your message. Please try contacting me directly via email.");
-          }, 1500);
-        }
-        
-        setCurrentStep('completed');
-        break;
-
-      default:
-        break;
+      // Check if contact form was already submitted
+      if (contactFormSubmitted) {
+        setTimeout(() => {
+          addBotMessage("You've already submitted a contact form! Amogh will get back to you soon. In the meantime, feel free to ask about his experience or projects.");
+        }, 800);
+      } else {
+        // Add bot response with contact form trigger
+        setTimeout(() => {
+          addBotMessage("I'd be happy to help you get in touch with Amogh! Please fill out the contact form below and I'll make sure he receives your message.");
+          setShowContactForm(true);
+          setIsExpanded(true); // Auto-expand when contact form appears
+        }, 800);
+      }
+    } else {
+      addUserMessage(input);
+      await sendMessageToAI(input);
     }
-  };
 
-  const handleOptionClick = (option: string) => {
-    setCurrentInput(option);
-    setTimeout(() => handleSend(), 100);
+    setCurrentInput('');
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -224,10 +388,92 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, onNewMessage }) 
 
   const resetChat = () => {
     setMessages([]);
-    setCurrentStep('greeting');
-    setUserData({ fullName: '', email: '', phoneNumber: '', message: '' });
+    setConversationHistory([]);
     setCurrentInput('');
-    initializeChat();
+    setShowContactForm(false);
+    setShowQuickQuestions(false);
+    setQuickQuestionType('initial');
+    setContactFormSubmitted(false);
+    setContactFormData({
+      fullName: '',
+      email: '',
+      phoneNumber: '',
+      message: ''
+    });
+    // Clear sessionStorage when resetting chat
+    sessionStorage.removeItem('chatMessages');
+    sessionStorage.removeItem('chatConversationHistory');
+    // Don't call initializeChat here - let the useEffect handle it
+  };
+
+  const toggleExpanded = () => {
+    setIsExpanded(!isExpanded);
+  };
+
+  const handleQuickQuestion = async (question: string) => {
+    setShowQuickQuestions(false); // Hide quick questions after use
+
+    if (question.toLowerCase().includes('contact')) {
+      // Add user message
+      addUserMessage(question);
+
+      // Check if contact form was already submitted
+      if (contactFormSubmitted) {
+        setTimeout(() => {
+          addBotMessage("You've already submitted a contact form! Amogh will get back to you soon. In the meantime, feel free to ask about his experience or projects.");
+        }, 800);
+      } else {
+        // Add bot response with contact form trigger
+        setTimeout(() => {
+          addBotMessage("I'd be happy to help you get in touch with Amogh! Please fill out the contact form below and I'll make sure he receives your message.");
+          setShowContactForm(true);
+          setIsExpanded(true); // Auto-expand when contact form appears
+        }, 800);
+      }
+    } else {
+      // Handle other quick questions normally
+      addUserMessage(question);
+      await sendMessageToAI(question);
+    }
+  };
+
+  const handleContactSubmit = async () => {
+    try {
+      setIsTyping(true);
+
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(contactFormData),
+      });
+
+      if (response.ok) {
+        addBotMessage("Thank you! Your message has been sent to Amogh. He'll get back to you soon!");
+        setContactFormData({
+          fullName: '',
+          email: '',
+          phoneNumber: '',
+          message: ''
+        });
+        setShowContactForm(false);
+        setContactFormSubmitted(true); // Mark as submitted
+
+        // Show post-contact quick questions after a brief delay
+        setTimeout(() => {
+          setQuickQuestionType('post-contact');
+          setShowQuickQuestions(true);
+        }, 1000);
+      } else {
+        addBotMessage("Sorry, there was an issue sending your message. Please try again or contact Amogh directly at amoghr@gwu.edu");
+      }
+    } catch (error) {
+      console.error('Error submitting contact form:', error);
+      addBotMessage("Sorry, there was an issue sending your message. Please try again or contact Amogh directly at amoghr@gwu.edu");
+    } finally {
+      setIsTyping(false);
+    }
   };
 
   return (
@@ -235,7 +481,7 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, onNewMessage }) 
       {/* Backdrop */}
       {isOpen && (
         <Box
-          onClick={onClose}
+          onClick={handleClose}
           sx={{
             position: 'fixed',
             top: 0,
@@ -258,10 +504,16 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, onNewMessage }) 
           position: 'fixed',
           bottom: 24,
           right: 24,
-          width: { xs: 'calc(100vw - 48px)', sm: 400 },
-          maxWidth: 400,
-          height: { xs: 'calc(100vh - 100px)', sm: 500 },
-          maxHeight: 500,
+          width: {
+            xs: 'calc(100vw - 48px)',
+            sm: isExpanded ? 600 : 400
+          },
+          maxWidth: isExpanded ? 600 : 400,
+          height: {
+            xs: 'calc(100vh - 100px)',
+            sm: isExpanded ? 700 : 500
+          },
+          maxHeight: isExpanded ? 700 : 500,
           zIndex: 1300,
           transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
           transform: isOpen ? 'translateY(0) scale(1)' : 'translateY(100%) scale(0.95)',
@@ -281,8 +533,8 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, onNewMessage }) 
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden',
-          boxShadow: isDarkMode 
-            ? '0 24px 48px rgba(0, 0, 0, 0.4)' 
+          boxShadow: isDarkMode
+            ? '0 24px 48px rgba(0, 0, 0, 0.4)'
             : '0 24px 48px rgba(0, 0, 0, 0.15)'
         }}
       >
@@ -294,10 +546,11 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, onNewMessage }) 
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            backgroundColor: alpha(theme.palette.primary.main, 0.05)
+            backgroundColor: alpha(theme.palette.primary.main, 0.05),
+            minHeight: 72
           }}
         >
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
             <Avatar
               sx={{
                 bgcolor: theme.palette.primary.main,
@@ -316,18 +569,54 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, onNewMessage }) 
               </Typography>
             </Box>
           </Box>
-          <Box>
-            {currentStep === 'completed' && (
-              <Button
-                size="small"
-                onClick={resetChat}
-                sx={{ mr: 1 }}
-              >
-                New Chat
-              </Button>
-            )}
-            <IconButton onClick={onClose} size="small">
-              <CloseIcon />
+
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <IconButton
+              onClick={toggleExpanded}
+              size="small"
+              title={isExpanded ? 'Collapse' : 'Expand'}
+              sx={{
+                color: theme.palette.text.secondary,
+                '&:hover': {
+                  color: theme.palette.primary.main,
+                  backgroundColor: alpha(theme.palette.primary.main, 0.1)
+                }
+              }}
+            >
+              {isExpanded ? <CollapseIcon fontSize="small" /> : <ExpandIcon fontSize="small" />}
+            </IconButton>
+
+            <Button
+              size="small"
+              onClick={resetChat}
+              variant="text"
+              sx={{
+                minWidth: 'auto',
+                fontSize: '0.75rem',
+                px: 1.5,
+                py: 0.5,
+                color: theme.palette.text.secondary,
+                '&:hover': {
+                  color: theme.palette.primary.main,
+                  backgroundColor: alpha(theme.palette.primary.main, 0.1)
+                }
+              }}
+            >
+              New Chat
+            </Button>
+
+            <IconButton
+              onClick={handleClose}
+              size="small"
+              sx={{
+                color: theme.palette.text.secondary,
+                '&:hover': {
+                  color: theme.palette.error.main,
+                  backgroundColor: alpha(theme.palette.error.main, 0.1)
+                }
+              }}
+            >
+              <CloseIcon fontSize="small" />
             </IconButton>
           </Box>
         </Box>
@@ -354,7 +643,7 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, onNewMessage }) 
             >
               <Box
                 sx={{
-                  maxWidth: '80%',
+                  maxWidth: message.isBot ? (isExpanded ? '95%' : '90%') : '80%',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: message.isBot ? 'flex-start' : 'flex-end'
@@ -362,7 +651,7 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, onNewMessage }) 
               >
                 <Paper
                   sx={{
-                    p: 1.5,
+                    p: 2,
                     backgroundColor: message.isBot
                       ? alpha(theme.palette.background.default, 0.8)
                       : theme.palette.primary.main,
@@ -372,34 +661,15 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, onNewMessage }) 
                     borderRadius: 2,
                     border: message.isBot
                       ? `1px solid ${alpha(theme.palette.divider, 0.1)}`
-                      : 'none'
+                      : 'none',
+                    maxWidth: '100%',
+                    wordBreak: 'break-word'
                   }}
                 >
-                  <Typography variant="body2">
-                    {message.text}
-                  </Typography>
-                </Paper>
-                {message.options && (
-                  <Box sx={{ mt: 1, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                    {message.options.map((option, index) => (
-                      <Chip
-                        key={index}
-                        label={option}
-                        onClick={() => handleOptionClick(option)}
-                        clickable
-                        size="small"
-                        sx={{
-                          backgroundColor: alpha(theme.palette.primary.main, 0.1),
-                          color: theme.palette.primary.main,
-                          border: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`,
-                          '&:hover': {
-                            backgroundColor: alpha(theme.palette.primary.main, 0.2)
-                          }
-                        }}
-                      />
-                    ))}
+                  <Box sx={{ width: '100%' }}>
+                    {formatMessage(message.text)}
                   </Box>
-                )}
+                </Paper>
               </Box>
             </Box>
           ))}
@@ -447,9 +717,280 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, onNewMessage }) 
             </Box>
           )}
 
-          {isSaving && (
-            <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
-              <CircularProgress size={24} />
+
+          {/* Contact Form */}
+          {showContactForm && (
+            <Box
+              sx={{
+                mt: 2,
+                p: 3,
+                border: `2px solid ${theme.palette.primary.main}`,
+                borderRadius: 3,
+                backgroundColor: alpha(theme.palette.primary.main, 0.05),
+                animation: 'slideIn 0.3s ease-out'
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                <EmailIcon sx={{ color: theme.palette.primary.main, fontSize: '1rem' }} />
+                <Typography variant="subtitle2" sx={{ fontWeight: 600, color: theme.palette.primary.main }}>
+                  Contact Form
+                </Typography>
+              </Box>
+
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <TextField
+                  size="small"
+                  label="Full Name *"
+                  value={contactFormData.fullName}
+                  onChange={(e) => setContactFormData(prev => ({ ...prev, fullName: e.target.value }))}
+                  required
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: 2
+                    }
+                  }}
+                />
+
+                <TextField
+                  size="small"
+                  label="Email *"
+                  type="email"
+                  value={contactFormData.email}
+                  onChange={(e) => setContactFormData(prev => ({ ...prev, email: e.target.value }))}
+                  required
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: 2
+                    }
+                  }}
+                />
+
+                <TextField
+                  size="small"
+                  label="Phone Number (Optional)"
+                  value={contactFormData.phoneNumber}
+                  onChange={(e) => setContactFormData(prev => ({ ...prev, phoneNumber: e.target.value }))}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: 2
+                    }
+                  }}
+                />
+
+                <TextField
+                  label="Message *"
+                  multiline
+                  rows={3}
+                  value={contactFormData.message}
+                  onChange={(e) => setContactFormData(prev => ({ ...prev, message: e.target.value }))}
+                  required
+                  placeholder="Tell Amogh about your project, collaboration opportunity, or hiring needs..."
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: 2
+                    }
+                  }}
+                />
+
+                <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
+                  <Button
+                    variant="contained"
+                    onClick={handleContactSubmit}
+                    disabled={!contactFormData.fullName || !contactFormData.email || !contactFormData.message || isTyping}
+                    sx={{
+                      flex: 1,
+                      py: 1,
+                      borderRadius: 2,
+                      textTransform: 'none',
+                      fontWeight: 600
+                    }}
+                  >
+                    {isTyping ? 'Sending...' : 'Send Message'}
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    onClick={() => {
+                      setShowContactForm(false);
+                      // Add interactive message when contact form is cancelled
+                      const cancelMessage: Message = {
+                        id: Date.now().toString(),
+                        text: "No worries! What else would you like to know about Amogh's profile? I can tell you about his experience, projects, education, or anything else you're curious about.",
+                        isBot: true,
+                        timestamp: new Date()
+                      };
+                      setMessages(prev => [...prev, cancelMessage]);
+                      setShowQuickQuestions(true);
+                      setQuickQuestionType('initial');
+                      setIsExpanded(true);
+                    }}
+                    sx={{
+                      px: 3,
+                      py: 1,
+                      borderRadius: 2,
+                      textTransform: 'none'
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                </Box>
+              </Box>
+            </Box>
+          )}
+
+          {/* Quick Action Buttons - Compact bubbles */}
+          {showQuickQuestions && (
+            <Box
+              sx={{
+                mt: 1.5,
+                display: 'flex',
+                flexDirection: { xs: 'column', sm: 'row' },
+                gap: 1,
+                mb: 1
+              }}
+            >
+              {quickQuestionType === 'initial' ? (
+                <>
+                  {/* Initial Questions */}
+                  <Paper
+                    sx={{
+                      p: { xs: 1, sm: 1.5 },
+                      backgroundColor: alpha(theme.palette.primary.main, 0.05),
+                      border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+                      borderRadius: 2,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      flex: { xs: 'none', sm: 1 },
+                      maxWidth: { xs: '90%', sm: 'none' },
+                      '&:hover': {
+                        backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                        borderColor: theme.palette.primary.main,
+                        transform: 'translateY(-1px)',
+                        boxShadow: `0 2px 8px ${alpha(theme.palette.primary.main, 0.15)}`
+                      }
+                    }}
+                    onClick={() => handleQuickQuestion("How can I contact Amogh?")}
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.5, sm: 1 } }}>
+                      <ContactIcon sx={{ fontSize: { xs: '0.875rem', sm: '1rem' }, color: theme.palette.primary.main }} />
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          color: theme.palette.primary.main,
+                          fontWeight: 500,
+                          fontSize: { xs: '0.75rem', sm: '0.875rem' }
+                        }}
+                      >
+                        Contact Amogh
+                      </Typography>
+                    </Box>
+                  </Paper>
+
+                  <Paper
+                    sx={{
+                      p: { xs: 1, sm: 1.5 },
+                      backgroundColor: alpha(theme.palette.primary.main, 0.05),
+                      border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+                      borderRadius: 2,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      flex: { xs: 'none', sm: 1 },
+                      maxWidth: { xs: '90%', sm: 'none' },
+                      '&:hover': {
+                        backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                        borderColor: theme.palette.primary.main,
+                        transform: 'translateY(-1px)',
+                        boxShadow: `0 2px 8px ${alpha(theme.palette.primary.main, 0.15)}`
+                      }
+                    }}
+                    onClick={() => handleQuickQuestion("Tell me about Amogh's recent projects")}
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.5, sm: 1 } }}>
+                      <ProjectIcon sx={{ fontSize: { xs: '0.875rem', sm: '1rem' }, color: theme.palette.primary.main }} />
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          color: theme.palette.primary.main,
+                          fontWeight: 500,
+                          fontSize: { xs: '0.75rem', sm: '0.875rem' }
+                        }}
+                      >
+                        Recent Projects
+                      </Typography>
+                    </Box>
+                  </Paper>
+                </>
+              ) : (
+                <>
+                  {/* Post-Contact Questions */}
+                  <Paper
+                    sx={{
+                      p: { xs: 1, sm: 1.5 },
+                      backgroundColor: alpha(theme.palette.primary.main, 0.05),
+                      border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+                      borderRadius: 2,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      flex: { xs: 'none', sm: 1 },
+                      maxWidth: { xs: '90%', sm: 'none' },
+                      '&:hover': {
+                        backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                        borderColor: theme.palette.primary.main,
+                        transform: 'translateY(-1px)',
+                        boxShadow: `0 2px 8px ${alpha(theme.palette.primary.main, 0.15)}`
+                      }
+                    }}
+                    onClick={() => handleQuickQuestion("Tell me about Amogh's work experience")}
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.5, sm: 1 } }}>
+                      <ExperienceIcon sx={{ fontSize: { xs: '0.875rem', sm: '1rem' }, color: theme.palette.primary.main }} />
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          color: theme.palette.primary.main,
+                          fontWeight: 500,
+                          fontSize: { xs: '0.75rem', sm: '0.875rem' }
+                        }}
+                      >
+                        Work Experience
+                      </Typography>
+                    </Box>
+                  </Paper>
+
+                  <Paper
+                    sx={{
+                      p: { xs: 1, sm: 1.5 },
+                      backgroundColor: alpha(theme.palette.primary.main, 0.05),
+                      border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+                      borderRadius: 2,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      flex: { xs: 'none', sm: 1 },
+                      maxWidth: { xs: '90%', sm: 'none' },
+                      '&:hover': {
+                        backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                        borderColor: theme.palette.primary.main,
+                        transform: 'translateY(-1px)',
+                        boxShadow: `0 2px 8px ${alpha(theme.palette.primary.main, 0.15)}`
+                      }
+                    }}
+                    onClick={() => handleQuickQuestion("What are Amogh's technical skills?")}
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.5, sm: 1 } }}>
+                      <EducationIcon sx={{ fontSize: { xs: '0.875rem', sm: '1rem' }, color: theme.palette.primary.main }} />
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          color: theme.palette.primary.main,
+                          fontWeight: 500,
+                          fontSize: { xs: '0.75rem', sm: '0.875rem' }
+                        }}
+                      >
+                        Technical Skills
+                      </Typography>
+                    </Box>
+                  </Paper>
+                </>
+              )}
             </Box>
           )}
 
@@ -457,48 +998,70 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, onNewMessage }) 
         </Box>
 
         {/* Input */}
-        {currentStep !== 'completed' && (
-          <Box
-            sx={{
-              p: 2,
-              borderTop: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
-              backgroundColor: alpha(theme.palette.background.default, 0.5)
-            }}
-          >
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              <TextField
-                fullWidth
-                variant="outlined"
-                placeholder="Type your message..."
-                value={currentInput}
-                onChange={(e) => setCurrentInput(e.target.value)}
-                onKeyDown={handleKeyPress}
-                disabled={isTyping || isSaving}
-                size="small"
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: 3
-                  }
-                }}
-              />
-              <IconButton
-                onClick={handleSend}
-                disabled={!currentInput.trim() || isTyping || isSaving}
-                color="primary"
-                sx={{
-                  backgroundColor: alpha(theme.palette.primary.main, 0.1),
-                  '&:hover': {
-                    backgroundColor: alpha(theme.palette.primary.main, 0.2)
-                  }
-                }}
-              >
-                <SendIcon />
-              </IconButton>
-            </Box>
+        <Box
+          sx={{
+            p: 2,
+            borderTop: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+            backgroundColor: alpha(theme.palette.background.default, 0.5)
+          }}
+        >
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <TextField
+              fullWidth
+              variant="outlined"
+              placeholder="Ask about Amogh's experience, projects, or skills..."
+              value={currentInput}
+              onChange={(e) => setCurrentInput(e.target.value)}
+              onKeyDown={handleKeyPress}
+              disabled={isTyping}
+              size="small"
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 3
+                }
+              }}
+            />
+            <IconButton
+              onClick={handleSend}
+              disabled={!currentInput.trim() || isTyping}
+              color="primary"
+              sx={{
+                backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                '&:hover': {
+                  backgroundColor: alpha(theme.palette.primary.main, 0.2)
+                }
+              }}
+            >
+              <SendIcon />
+            </IconButton>
           </Box>
-        )}
+        </Box>
       </Paper>
       </Box>
+
+      <style jsx>{`
+        @keyframes typing {
+          0%, 60%, 100% {
+            transform: translateY(0);
+            opacity: 0.7;
+          }
+          30% {
+            transform: translateY(-10px);
+            opacity: 1;
+          }
+        }
+
+        @keyframes slideIn {
+          0% {
+            transform: translateY(20px);
+            opacity: 0;
+          }
+          100% {
+            transform: translateY(0);
+            opacity: 1;
+          }
+        }
+      `}</style>
     </>
   );
 };

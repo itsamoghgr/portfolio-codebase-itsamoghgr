@@ -153,7 +153,7 @@ const ExperienceSection = () => {
           <Button
             variant="contained"
             startIcon={<CloudDownload />}
-            href="/static/downloads/amogh_ramagiri_resume.pdf"
+            href="public/documents/amogh_ramagiri_resume_gen.pdf"
             download
             sx={{
               position: { xs: 'static', sm: 'absolute' },

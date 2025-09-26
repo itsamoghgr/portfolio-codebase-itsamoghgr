@@ -99,6 +99,16 @@
       "liveDemoUrl": "",
       "imageUrl": "/images/portfolio/img-10.jpg",
       "date": "Apr 2023"
+    },
+    {
+      "id": "11",
+      "title": "AI Assistant Chatbot for Portfolio",
+      "description": "Built an intelligent AI-powered chatbot assistant integrated into portfolio website using Groq's LLaMA model. Features include smart contact form handling, session-based persistence, auto-expansion for long responses, and contextual quick questions to enhance user engagement and lead generation.",
+      "techStack": ["React", "Next.js", "TypeScript", "Material-UI", "Groq API", "LLaMA 3.1", "Supabase"],
+      "repoUrl": "https://github.com/itsamoghgr/portfolio",
+      "liveDemoUrl": "https://amoghramagiri.com",
+      "imageUrl": "/images/portfolio/img-11.png",
+      "date": "Sept 2025"
     }
 
   ],
