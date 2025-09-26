@@ -6,6 +6,7 @@ import Navbar from '@/components/common/navbar';
 import Footer from '@/components/common/footer';
 import ChatWidget from '@/app/components/chatbot/ChatWidget';
 import { ThemeProvider } from '@/contexts/ThemeContext';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -28,6 +29,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           {children}
           <Footer />
           <ChatWidget />
+          <SpeedInsights />
         </ThemeProvider>
       </body>
     </html>
