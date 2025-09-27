@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//var/folders/74/z_8j556n7cd4w_cxjjdsx5ww0000gn/T/TemporaryItems/NSIRD_screencaptureui_mzDihb/**)",
+      "Read(//var/folders/74/z_8j556n7cd4w_cxjjdsx5ww0000gn/T/TemporaryItems/NSIRD_screencaptureui_MryAZJ/**)",
+      "Read(//Users/amoghramagiri/Documents/Projects/portfolio-itsamoghgr/templates/**)",
+      "Read(//Users/amoghramagiri/Documents/Projects/portfolio-itsamoghgr/static/css/**)",
+      "Read(//Users/amoghramagiri/Documents/Projects/portfolio-itsamoghgr/static/img/**)",
+      "Bash(npm run build:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
