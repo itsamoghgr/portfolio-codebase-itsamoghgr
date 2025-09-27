@@ -434,7 +434,7 @@ This project is open source and available under the [MIT License](LICENSE).
 ## 📞 Contact
 
 **Amogh G. Ramagiri**
-- **Website**: [amoghramagiri.com](https://amoghramagiri.com)
+- **Website**: [amoghramagiri.com](https://itsamoghgr.com)
 - **LinkedIn**: [linkedin.com/in/amoghgr](https://linkedin.com/in/amoghgr)
 - **GitHub**: [github.com/itsamoghgr](https://github.com/itsamoghgr)
 - **Email**: Contact through the website form
