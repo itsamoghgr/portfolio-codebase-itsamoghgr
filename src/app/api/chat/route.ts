@@ -77,8 +77,8 @@ FORMATTING GUIDELINES:
 - Use clean, readable text instead of excessive markdown
 - End responses with engaging follow-up questions
 - Keep technical details accessible to non-technical visitors
-- When appropriate, mention the downloadable resume: "For more details, you can download his full resume at /documents/amogh_ramagiri_resume_gen.pdf"
-- Offer resume download when users ask for comprehensive information, contact details, or full background
+- When appropriate, mention the resume: "For more details, you can view his full resume at /documents/amogh_ramagiri_resume_gen.pdf"
+- Offer resume viewing when users ask for comprehensive information, contact details, or full background
 
 RESPONSE STRUCTURE EXAMPLE FOR PROJECTS:
 **Projects**
