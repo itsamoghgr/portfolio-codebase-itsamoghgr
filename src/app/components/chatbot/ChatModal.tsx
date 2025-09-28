@@ -22,7 +22,10 @@ import {
   ContactMail as ContactIcon,
   Work as ProjectIcon,
   Person as ExperienceIcon,
-  School as EducationIcon
+  School as EducationIcon,
+  Schedule as ScheduleIcon,
+  CalendarToday as CalendarIcon,
+  AccessTime as TimeIcon
 } from '@mui/icons-material';
 import { useTheme as useCustomTheme } from '../../../contexts/ThemeContext';
 
@@ -42,24 +45,49 @@ interface ChatModalProps {
   isOpen: boolean;
   onClose: () => void;
   onNewMessage: () => void;
+  chatbotStatus?: {
+    status: 'online' | 'offline' | 'checking';
+    message: string;
+    lastChecked: Date | null;
+    error?: string;
+  };
+  onRefreshStatus?: () => void;
 }
 
-const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, onNewMessage }) => {
+const ChatModal: React.FC<ChatModalProps> = ({
+  isOpen,
+  onClose,
+  onNewMessage,
+  chatbotStatus,
+  onRefreshStatus
+}) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [currentInput, setCurrentInput] = useState('');
   const [conversationHistory, setConversationHistory] = useState<ConversationMessage[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [showContactForm, setShowContactForm] = useState(false);
+  const [showSchedulingForm, setShowSchedulingForm] = useState(false);
   const [showQuickQuestions, setShowQuickQuestions] = useState(false);
   const [quickQuestionType, setQuickQuestionType] = useState<'initial' | 'post-contact'>('initial');
   const [contactFormSubmitted, setContactFormSubmitted] = useState(false);
+  const [schedulingFormSubmitted, setSchedulingFormSubmitted] = useState(false);
+  const [directSchedulingRequest, setDirectSchedulingRequest] = useState(false);
   const [contactFormData, setContactFormData] = useState({
     fullName: '',
     email: '',
     phoneNumber: '',
     message: ''
   });
+  const [schedulingFormData, setSchedulingFormData] = useState({
+    meetingType: '15min' as '15min' | '30min',
+    selectedDate: '',
+    selectedTimeSlot: '',
+    timezone: 'America/New_York'
+  });
+  const [availableSlots, setAvailableSlots] = useState<string[]>([]);
+  const [loadingSlots, setLoadingSlots] = useState(false);
+  const [selectedDate, setSelectedDate] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const isInitializedRef = useRef(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -84,7 +112,7 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, onNewMessage }) 
       // If it's a URL, make it clickable
       if (part.match(urlRegex)) {
         const isRelativeUrl = part.startsWith('/');
-        const displayText = isRelativeUrl && part.includes('.pdf') ? 'Download Resume' : part;
+        const displayText = isRelativeUrl && part.includes('.pdf') ? 'View Resume' : part;
 
         return (
           <Box
@@ -230,6 +258,19 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, onNewMessage }) 
       }, 500);
     }
 
+    // Check if AI mentioned scheduling but form isn't showing (fallback trigger)
+    const mentionsScheduling = text.toLowerCase().includes('schedule') ||
+                              text.toLowerCase().includes('calendar') ||
+                              text.toLowerCase().includes('meeting') ||
+                              text.toLowerCase().includes('call');
+
+    if (mentionsScheduling && !showSchedulingForm && !schedulingFormSubmitted && contactFormSubmitted) {
+      setTimeout(() => {
+        setShowSchedulingForm(true);
+        setIsExpanded(true);
+      }, 500);
+    }
+
     // Auto-expand for long responses
     const wordCount = text.split(' ').length;
     const lineCount = text.split('\n').length;
@@ -243,7 +284,7 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, onNewMessage }) 
 
     // Focus input field after bot response (with small delay for better UX)
     setTimeout(() => {
-      if (inputRef.current && !showContactForm) {
+      if (inputRef.current && !showContactForm && !showSchedulingForm) {
         inputRef.current.focus();
       }
     }, 300);
@@ -338,6 +379,15 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, onNewMessage }) 
     try {
       setIsTyping(true);
 
+      // Check if chatbot is offline before making the request
+      if (chatbotStatus?.status === 'offline') {
+        setTimeout(() => {
+          setIsTyping(false);
+          addBotMessage('I\'m currently offline and unable to respond. Please try again later or contact Amogh directly through his portfolio.');
+        }, 800);
+        return;
+      }
+
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
@@ -364,7 +414,29 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, onNewMessage }) 
     } catch (error: unknown) {
       console.error('Error getting AI response:', error);
       setIsTyping(false);
-      addBotMessage('Sorry, I\'m having trouble connecting right now. Please try asking your question again, or feel free to contact Amogh directly through the contact form on his portfolio.');
+
+      // Provide more specific error messages based on the error
+      const err = error as { message?: string };
+      let errorMessage = 'Sorry, I\'m having trouble connecting right now. ';
+
+      if (err.message?.includes('401')) {
+        errorMessage += 'There\'s an authentication issue with the AI service. ';
+      } else if (err.message?.includes('429')) {
+        errorMessage += 'The AI service is currently busy. Please try again in a moment. ';
+      } else if (err.message?.includes('503')) {
+        errorMessage += 'The AI service is temporarily unavailable. ';
+      }
+
+      errorMessage += 'Please try asking your question again, or feel free to contact Amogh directly through the contact form on his portfolio.';
+
+      addBotMessage(errorMessage);
+
+      // Trigger status refresh if there's an error
+      if (onRefreshStatus) {
+        setTimeout(() => {
+          onRefreshStatus();
+        }, 1000);
+      }
     }
   };
 
@@ -374,6 +446,16 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, onNewMessage }) 
     const input = currentInput.trim();
     setShowQuickQuestions(false); // Hide quick questions when user types
 
+    // Check if the message is about scheduling/meeting
+    const schedulingKeywords = ['schedule', 'meeting', 'call', 'appointment', 'calendar', 'book', 'set up'];
+    const meetingTypes = ['call', 'meeting', 'discussion', 'chat', 'talk', 'interview'];
+
+    const hasSchedulingKeyword = schedulingKeywords.some(keyword => input.toLowerCase().includes(keyword));
+    const hasMeetingType = meetingTypes.some(type => input.toLowerCase().includes(type));
+    const hasSchedulingContext = ['amogh', 'you', 'him', 'his', 'he'].some(pronoun => input.toLowerCase().includes(pronoun));
+
+    const isSchedulingQuery = (hasSchedulingKeyword || hasMeetingType) && (hasSchedulingContext || input.toLowerCase().includes('schedule'));
+
     // Check if the message is about contacting Amogh (comprehensive detection)
     const contactKeywords = ['contact', 'reach', 'get in touch', 'hire', 'collaborate', 'email', 'phone', 'message', 'write to'];
     const contactPronouns = ['amogh', 'you', 'him', 'his', 'he', 'author', 'owner'];
@@ -382,9 +464,45 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, onNewMessage }) 
     const hasContactContext = contactPronouns.some(pronoun => input.toLowerCase().includes(pronoun));
 
     // Trigger contact form if: has contact keyword AND (has context OR is just asking about "contact")
-    const isContactQuery = hasContactKeyword && (hasContactContext || input.toLowerCase().includes('contact'));
+    const isContactQuery = hasContactKeyword && (hasContactContext || input.toLowerCase().includes('contact')) && !isSchedulingQuery;
 
-    if (isContactQuery) {
+    if (isSchedulingQuery) {
+      // Add user message
+      addUserMessage(input);
+
+      // Check if contact form was already submitted and we can proceed to scheduling
+      if (contactFormSubmitted && !schedulingFormSubmitted) {
+        setIsTyping(true);
+        setTimeout(() => {
+          setIsTyping(false);
+          addBotMessage("Perfect! Since you've already provided your contact details, let me help you schedule a meeting with Amogh. Please fill out the scheduling form below.");
+
+          setTimeout(() => {
+            setShowSchedulingForm(true);
+            setIsExpanded(true);
+          }, 300);
+        }, 1000 + Math.random() * 600);
+      } else if (schedulingFormSubmitted) {
+        setIsTyping(true);
+        setTimeout(() => {
+          setIsTyping(false);
+          addBotMessage("You've already scheduled a meeting! Amogh will reach out to confirm the details. Feel free to ask about his experience or projects while you wait.");
+        }, 800 + Math.random() * 400);
+      } else {
+        // Need contact info first - set flag for direct scheduling request
+        setDirectSchedulingRequest(true);
+        setIsTyping(true);
+        setTimeout(() => {
+          setIsTyping(false);
+          addBotMessage("I'd be happy to help you schedule a meeting with Amogh! First, I'll need your contact information. Please fill out the form below.");
+
+          setTimeout(() => {
+            setShowContactForm(true);
+            setIsExpanded(true);
+          }, 300);
+        }, 1000 + Math.random() * 600);
+      }
+    } else if (isContactQuery) {
       // Add user message
       addUserMessage(input);
 
@@ -428,15 +546,26 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, onNewMessage }) 
     setConversationHistory([]);
     setCurrentInput('');
     setShowContactForm(false);
+    setShowSchedulingForm(false);
     setShowQuickQuestions(false);
     setQuickQuestionType('initial');
     setContactFormSubmitted(false);
+    setSchedulingFormSubmitted(false);
+    setDirectSchedulingRequest(false);
     setContactFormData({
       fullName: '',
       email: '',
       phoneNumber: '',
       message: ''
     });
+    setSchedulingFormData({
+      meetingType: '15min',
+      selectedDate: '',
+      selectedTimeSlot: '',
+      timezone: 'America/New_York'
+    });
+    setAvailableSlots([]);
+    setSelectedDate('');
     // Reset initialization flag
     isInitializedRef.current = false;
     // Clear sessionStorage when resetting chat
@@ -452,7 +581,31 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, onNewMessage }) 
   const handleQuickQuestion = async (question: string) => {
     setShowQuickQuestions(false); // Hide quick questions after use
 
-    if (question.toLowerCase().includes('contact')) {
+    if (question.toLowerCase().includes('schedule')) {
+      // Add user message
+      addUserMessage(question);
+
+      // Check if already scheduled
+      if (schedulingFormSubmitted) {
+        setIsTyping(true);
+        setTimeout(() => {
+          setIsTyping(false);
+          addBotMessage("You've already scheduled a meeting! Amogh will reach out to confirm the details.");
+        }, 800 + Math.random() * 400);
+      } else {
+        // Show scheduling form (contact info will be handled during submission)
+        setIsTyping(true);
+        setTimeout(() => {
+          setIsTyping(false);
+          addBotMessage("Perfect! Let me help you schedule a meeting with Amogh. Please select your preferred date and time below.");
+
+          setTimeout(() => {
+            setShowSchedulingForm(true);
+            setIsExpanded(true);
+          }, 300);
+        }, 1000 + Math.random() * 600);
+      }
+    } else if (question.toLowerCase().includes('contact')) {
       // Add user message
       addUserMessage(question);
 
@@ -483,6 +636,170 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, onNewMessage }) 
     }
   };
 
+  // Function to get available time slots for a specific date
+  const fetchAvailableSlots = async (date: string) => {
+    setLoadingSlots(true);
+    try {
+      const response = await fetch(`/api/calendar?date=${date}`);
+      const data = await response.json();
+
+      if (response.ok) {
+        setAvailableSlots(data.freeSlots || []);
+      } else {
+        console.error('Failed to fetch availability:', data.error);
+        // Fallback to default slots if API fails
+        setAvailableSlots(['09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30']);
+      }
+    } catch (error) {
+      console.error('Error fetching availability:', error);
+      // Fallback to default slots if API fails
+      setAvailableSlots(['09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30']);
+    } finally {
+      setLoadingSlots(false);
+    }
+  };
+
+  // Function to handle date selection
+  const handleDateSelect = (date: string) => {
+    setSelectedDate(date);
+    setSchedulingFormData(prev => ({ ...prev, selectedDate: date, selectedTimeSlot: '' }));
+    fetchAvailableSlots(date);
+  };
+
+  // Function to handle time slot selection
+  const handleTimeSlotSelect = (timeSlot: string) => {
+    setSchedulingFormData(prev => ({ ...prev, selectedTimeSlot: timeSlot }));
+  };
+
+  // Function to generate next 14 days for date selection
+  const getAvailableDates = () => {
+    const dates = [];
+    const today = new Date();
+    for (let i = 1; i <= 14; i++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() + i);
+      // Skip weekends
+      if (date.getDay() !== 0 && date.getDay() !== 6) {
+        dates.push(date);
+      }
+    }
+    return dates;
+  };
+
+  // Function to format time slots for display
+  const formatTimeSlot = (time: string) => {
+    const [hour, minute] = time.split(':');
+    const hourNum = parseInt(hour);
+    const period = hourNum >= 12 ? 'PM' : 'AM';
+    const displayHour = hourNum > 12 ? hourNum - 12 : hourNum === 0 ? 12 : hourNum;
+    return `${displayHour}:${minute} ${period}`;
+  };
+
+  const handleSchedulingSubmit = async () => {
+    try {
+      setIsTyping(true);
+
+      // Store values before clearing form (to use in success messages)
+      const meetingType = schedulingFormData.meetingType;
+      const selectedDateStr = schedulingFormData.selectedDate;
+      const selectedTime = schedulingFormData.selectedTimeSlot;
+
+      // Use contact form data for attendee info
+      const attendeeEmail = contactFormData.email;
+      const attendeeName = contactFormData.fullName;
+
+      // If no contact data, use placeholder values (this shouldn't happen in normal flow)
+      const finalEmail = attendeeEmail || 'no-email@example.com';
+      const finalName = attendeeName || 'Unknown User';
+
+      const startDateTime = new Date(`${selectedDateStr}T${selectedTime}:00`);
+      const endDateTime = new Date(startDateTime);
+
+      // Add duration based on meeting type
+      if (meetingType === '15min') {
+        endDateTime.setMinutes(endDateTime.getMinutes() + 15);
+      } else {
+        endDateTime.setMinutes(endDateTime.getMinutes() + 30);
+      }
+
+
+      const response = await fetch('/api/calendar', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          attendeeEmail: finalEmail,
+          attendeeName: finalName,
+          meetingType: meetingType,
+          startTime: startDateTime.toISOString(),
+          endTime: endDateTime.toISOString(),
+          timezone: schedulingFormData.timezone,
+          // Include contact form details
+          phoneNumber: contactFormData.phoneNumber,
+          contactMessage: contactFormData.message
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Hide form IMMEDIATELY and mark as submitted
+        setShowSchedulingForm(false);
+        setSchedulingFormSubmitted(true);
+
+        // Clear form data
+        setSchedulingFormData({
+          meetingType: '15min',
+          selectedDate: '',
+          selectedTimeSlot: '',
+          timezone: 'America/New_York'
+        });
+        setAvailableSlots([]);
+        setSelectedDate('');
+
+        // Show typing animation and success messages
+        setTimeout(() => {
+          setIsTyping(false);
+          addBotMessage(`Excellent! Your ${meetingType === '15min' ? '15-minute call' : '30-minute project discussion'} with Amogh has been scheduled successfully for ${selectedDateStr} at ${selectedTime}.`);
+
+          // Add a follow-up message with calendar link
+          setTimeout(() => {
+            setIsTyping(true);
+            setTimeout(() => {
+              setIsTyping(false);
+              const calendarMessage = data.eventLink
+                ? `🎉 Meeting scheduled successfully!\n\n📅 **Add to your calendar:**\n${data.eventLink}\n\n✅ Amogh will reach out with video call details\n✅ You'll receive email reminders\n✅ All meeting details are saved\n\nThank you for your interest in connecting!`
+                : "Amogh will receive the meeting details and will reach out to you with any additional information or Google Meet link if needed. Thank you for your interest in connecting!";
+
+              addBotMessage(calendarMessage);
+
+              // Show final quick questions
+              setTimeout(() => {
+                setQuickQuestionType('post-contact');
+                setShowQuickQuestions(true);
+                // Focus input after scheduling form flow
+                if (inputRef.current) {
+                  inputRef.current.focus();
+                }
+              }, 500);
+            }, 1200);
+          }, 800);
+        }, 1000 + Math.random() * 800);
+      } else {
+        setIsTyping(false);
+        setShowSchedulingForm(false); // Hide form on error too
+        addBotMessage(`Sorry, there was an issue scheduling your meeting: ${data.error || 'Unknown error'}. Please try again or contact Amogh directly.`);
+      }
+    } catch (error) {
+      console.error('Error scheduling meeting:', error);
+      setTimeout(() => {
+        setIsTyping(false);
+        addBotMessage("Sorry, there was an issue scheduling your meeting. Please try again or contact Amogh directly at amoghr@gwu.edu");
+      }, 800);
+    }
+  };
+
   const handleContactSubmit = async () => {
     try {
       setIsTyping(true);
@@ -496,15 +813,10 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, onNewMessage }) 
       });
 
       if (response.ok) {
-        // Hide form first, then show typing animation
-        setContactFormData({
-          fullName: '',
-          email: '',
-          phoneNumber: '',
-          message: ''
-        });
+        // Hide form and mark as submitted, but preserve contact data for scheduling
         setShowContactForm(false);
         setContactFormSubmitted(true); // Mark as submitted
+        // Note: NOT clearing contactFormData so it's available for scheduling
 
         // Small delay to let form disappear, then show typing
         setTimeout(() => {
@@ -513,22 +825,35 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, onNewMessage }) 
             setIsTyping(false);
             addBotMessage("Perfect! Your message has been sent to Amogh successfully. He'll review it and get back to you soon!");
 
-            // Add a follow-up message with typing animation
+            // Add a follow-up message - different based on whether user requested scheduling
             setTimeout(() => {
               setIsTyping(true);
               setTimeout(() => {
                 setIsTyping(false);
-                addBotMessage("While you wait for his response, feel free to explore more about his work and experience! What else would you like to know?");
 
-                // Show post-contact quick questions after the follow-up message
-                setTimeout(() => {
-                  setQuickQuestionType('post-contact');
-                  setShowQuickQuestions(true);
-                  // Focus input after contact form flow
-                  if (inputRef.current) {
-                    inputRef.current.focus();
-                  }
-                }, 500);
+                if (directSchedulingRequest) {
+                  // User originally asked to schedule - proceed directly to scheduling
+                  addBotMessage("Now let's schedule your meeting with Amogh. Please select your preferred date and time below.");
+
+                  setTimeout(() => {
+                    setShowSchedulingForm(true);
+                    setIsExpanded(true);
+                    setDirectSchedulingRequest(false); // Reset flag
+                  }, 300);
+                } else {
+                  // Regular contact form - offer scheduling option
+                  addBotMessage("Perfect! Your message has been sent successfully. Would you also like to schedule a meeting with Amogh to discuss your project in more detail?");
+
+                  // Show scheduling option after contact form submission
+                  setTimeout(() => {
+                    setQuickQuestionType('post-contact');
+                    setShowQuickQuestions(true);
+                    // Focus input after contact form flow
+                    if (inputRef.current) {
+                      inputRef.current.focus();
+                    }
+                  }, 500);
+                }
               }, 1200);
             }, 800);
           }, 1000 + Math.random() * 800);
@@ -636,8 +961,22 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, onNewMessage }) 
               <Typography variant="subtitle1" fontWeight={600}>
                 Amogh&apos;s Assistant
               </Typography>
-              <Typography variant="caption" color="text.secondary">
-                Online
+              <Typography
+                variant="caption"
+                sx={{
+                  color: chatbotStatus?.status === 'online'
+                    ? '#4caf50'
+                    : chatbotStatus?.status === 'offline'
+                      ? '#f44336'
+                      : '#ff9800',
+                  fontWeight: 500
+                }}
+              >
+                {chatbotStatus?.status === 'online'
+                  ? 'Online'
+                  : chatbotStatus?.status === 'offline'
+                    ? 'Offline'
+                    : 'Checking...'}
               </Typography>
             </Box>
           </Box>
@@ -789,6 +1128,263 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, onNewMessage }) 
             </Box>
           )}
 
+
+          {/* Scheduling Form */}
+          {showSchedulingForm && !schedulingFormSubmitted && (
+            <Box
+              sx={{
+                mt: 2,
+                p: 3,
+                border: `2px solid ${theme.palette.secondary.main}`,
+                borderRadius: 3,
+                backgroundColor: alpha(theme.palette.secondary.main, 0.05),
+                animation: 'slideIn 0.3s ease-out'
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                <CalendarIcon sx={{ color: theme.palette.secondary.main, fontSize: '1rem' }} />
+                <Typography variant="subtitle2" sx={{ fontWeight: 600, color: theme.palette.secondary.main }}>
+                  Schedule Meeting
+                </Typography>
+              </Box>
+
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <TextField
+                  select
+                  size="small"
+                  label="Meeting Type *"
+                  value={schedulingFormData.meetingType}
+                  onChange={(e) => setSchedulingFormData(prev => ({ ...prev, meetingType: e.target.value as '15min' | '30min' }))}
+                  SelectProps={{ native: true }}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: 2,
+                      '& select': {
+                        fontSize: { xs: '16px', sm: '14px' }
+                      }
+                    },
+                    '& .MuiInputLabel-root': {
+                      fontSize: { xs: '16px', sm: '14px' }
+                    }
+                  }}
+                >
+                  <option value="15min">15-minute call</option>
+                  <option value="30min">30-minute project discussion</option>
+                </TextField>
+
+                {/* Date Selection */}
+                <Box>
+                  <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 600, color: theme.palette.secondary.main }}>
+                    Select a Date *
+                  </Typography>
+                  <Box
+                    sx={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
+                      gap: 1,
+                      mb: 2
+                    }}
+                  >
+                    {getAvailableDates().map((date) => {
+                      const dateStr = date.toISOString().split('T')[0];
+                      const isSelected = selectedDate === dateStr;
+                      const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+                      const dayNum = date.getDate();
+                      const monthName = date.toLocaleDateString('en-US', { month: 'short' });
+
+                      return (
+                        <Paper
+                          key={dateStr}
+                          onClick={() => handleDateSelect(dateStr)}
+                          sx={{
+                            p: 1.5,
+                            textAlign: 'center',
+                            cursor: 'pointer',
+                            border: isSelected
+                              ? `2px solid ${theme.palette.secondary.main}`
+                              : `1px solid ${alpha(theme.palette.divider, 0.2)}`,
+                            backgroundColor: isSelected
+                              ? alpha(theme.palette.secondary.main, 0.1)
+                              : alpha(theme.palette.background.paper, 0.8),
+                            transition: 'all 0.2s ease',
+                            '&:hover': {
+                              borderColor: theme.palette.secondary.main,
+                              backgroundColor: alpha(theme.palette.secondary.main, 0.05),
+                              transform: 'translateY(-1px)'
+                            }
+                          }}
+                        >
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              display: 'block',
+                              color: isSelected ? theme.palette.secondary.main : theme.palette.text.secondary,
+                              fontWeight: 500,
+                              fontSize: '0.7rem'
+                            }}
+                          >
+                            {dayName}
+                          </Typography>
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              fontWeight: 600,
+                              color: isSelected ? theme.palette.secondary.main : theme.palette.text.primary,
+                              fontSize: '1.1rem',
+                              lineHeight: 1
+                            }}
+                          >
+                            {dayNum}
+                          </Typography>
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              display: 'block',
+                              color: isSelected ? theme.palette.secondary.main : theme.palette.text.secondary,
+                              fontSize: '0.7rem'
+                            }}
+                          >
+                            {monthName}
+                          </Typography>
+                        </Paper>
+                      );
+                    })}
+                  </Box>
+                </Box>
+
+                {/* Time Slot Selection */}
+                {selectedDate && (
+                  <Box>
+                    <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 600, color: theme.palette.secondary.main }}>
+                      Select a Time *
+                    </Typography>
+                    {loadingSlots ? (
+                      <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
+                        <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
+                          Loading available times...
+                        </Typography>
+                      </Box>
+                    ) : (
+                      <Box
+                        sx={{
+                          display: 'grid',
+                          gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))',
+                          gap: 1,
+                          mb: 2
+                        }}
+                      >
+                        {availableSlots.map((timeSlot) => {
+                          const isSelected = schedulingFormData.selectedTimeSlot === timeSlot;
+                          const formattedTime = formatTimeSlot(timeSlot);
+
+                          return (
+                            <Paper
+                              key={timeSlot}
+                              onClick={() => handleTimeSlotSelect(timeSlot)}
+                              sx={{
+                                p: 1,
+                                textAlign: 'center',
+                                cursor: 'pointer',
+                                border: isSelected
+                                  ? `2px solid ${theme.palette.secondary.main}`
+                                  : `1px solid ${alpha(theme.palette.divider, 0.2)}`,
+                                backgroundColor: isSelected
+                                  ? alpha(theme.palette.secondary.main, 0.1)
+                                  : alpha(theme.palette.background.paper, 0.8),
+                                transition: 'all 0.2s ease',
+                                '&:hover': {
+                                  borderColor: theme.palette.secondary.main,
+                                  backgroundColor: alpha(theme.palette.secondary.main, 0.05),
+                                  transform: 'translateY(-1px)'
+                                }
+                              }}
+                            >
+                              <Typography
+                                variant="body2"
+                                sx={{
+                                  fontWeight: 600,
+                                  color: isSelected ? theme.palette.secondary.main : theme.palette.text.primary,
+                                  fontSize: '0.875rem'
+                                }}
+                              >
+                                {formattedTime}
+                              </Typography>
+                            </Paper>
+                          );
+                        })}
+                      </Box>
+                    )}
+                    {availableSlots.length === 0 && !loadingSlots && (
+                      <Box sx={{ textAlign: 'center', py: 2 }}>
+                        <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
+                          No available time slots for this date. Please select another date.
+                        </Typography>
+                      </Box>
+                    )}
+                  </Box>
+                )}
+
+
+                <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
+                  <Button
+                    variant="contained"
+                    onClick={handleSchedulingSubmit}
+                    disabled={!schedulingFormData.selectedDate || !schedulingFormData.selectedTimeSlot || isTyping}
+                    sx={{
+                      flex: 1,
+                      py: 1,
+                      borderRadius: 2,
+                      textTransform: 'none',
+                      fontWeight: 600,
+                      backgroundColor: theme.palette.secondary.main,
+                      '&:hover': {
+                        backgroundColor: theme.palette.secondary.dark
+                      }
+                    }}
+                  >
+                    {isTyping ? 'Scheduling...' : 'Schedule Meeting'}
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    onClick={() => {
+                      setShowSchedulingForm(false);
+
+                      // Add typing animation for cancel response
+                      setIsTyping(true);
+                      setTimeout(() => {
+                        setIsTyping(false);
+                        addBotMessage("No problem! Feel free to schedule a meeting anytime. What else would you like to know about Amogh's work?");
+
+                        // Show quick questions after a brief delay
+                        setTimeout(() => {
+                          setShowQuickQuestions(true);
+                          setQuickQuestionType('post-contact');
+                          // Focus input after cancellation
+                          if (inputRef.current) {
+                            inputRef.current.focus();
+                          }
+                        }, 600);
+                      }, 800 + Math.random() * 600);
+                    }}
+                    sx={{
+                      px: 3,
+                      py: 1,
+                      borderRadius: 2,
+                      textTransform: 'none',
+                      borderColor: theme.palette.secondary.main,
+                      color: theme.palette.secondary.main,
+                      '&:hover': {
+                        borderColor: theme.palette.secondary.dark,
+                        color: theme.palette.secondary.dark
+                      }
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                </Box>
+              </Box>
+            </Box>
+          )}
 
           {/* Contact Form */}
           {showContactForm && (
@@ -1028,6 +1624,67 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, onNewMessage }) 
               ) : (
                 <>
                   {/* Post-Contact Questions */}
+                  {schedulingFormSubmitted ? (
+                    <Paper
+                      sx={{
+                        p: { xs: 1, sm: 1.5 },
+                        backgroundColor: alpha(theme.palette.success.main, 0.05),
+                        border: `1px solid ${alpha(theme.palette.success.main, 0.2)}`,
+                        borderRadius: 2,
+                        flex: { xs: 'none', sm: 1 },
+                        maxWidth: { xs: '90%', sm: 'none' }
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.5, sm: 1 } }}>
+                        <ScheduleIcon sx={{ fontSize: { xs: '0.875rem', sm: '1rem' }, color: theme.palette.success.main }} />
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            color: theme.palette.success.main,
+                            fontWeight: 500,
+                            fontSize: { xs: '0.75rem', sm: '0.875rem' }
+                          }}
+                        >
+                          Meeting Scheduled ✓
+                        </Typography>
+                      </Box>
+                    </Paper>
+                  ) : (
+                    <Paper
+                      sx={{
+                        p: { xs: 1, sm: 1.5 },
+                        backgroundColor: alpha(theme.palette.primary.main, 0.05),
+                        border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+                        borderRadius: 2,
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                        flex: { xs: 'none', sm: 1 },
+                        maxWidth: { xs: '90%', sm: 'none' },
+                        '&:hover': {
+                          backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                          borderColor: theme.palette.primary.main,
+                          transform: 'translateY(-1px)',
+                          boxShadow: `0 2px 8px ${alpha(theme.palette.primary.main, 0.15)}`
+                        }
+                      }}
+                      onClick={() => handleQuickQuestion("I'd like to schedule a meeting with Amogh")}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.5, sm: 1 } }}>
+                        <ScheduleIcon sx={{ fontSize: { xs: '0.875rem', sm: '1rem' }, color: theme.palette.primary.main }} />
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            color: theme.palette.primary.main,
+                            fontWeight: 500,
+                            fontSize: { xs: '0.75rem', sm: '0.875rem' }
+                          }}
+                        >
+                          Schedule Meeting
+                        </Typography>
+                      </Box>
+                    </Paper>
+                  )}
+
                   <Paper
                     sx={{
                       p: { xs: 1, sm: 1.5 },
@@ -1061,40 +1718,6 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, onNewMessage }) 
                       </Typography>
                     </Box>
                   </Paper>
-
-                  <Paper
-                    sx={{
-                      p: { xs: 1, sm: 1.5 },
-                      backgroundColor: alpha(theme.palette.primary.main, 0.05),
-                      border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
-                      borderRadius: 2,
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease',
-                      flex: { xs: 'none', sm: 1 },
-                      maxWidth: { xs: '90%', sm: 'none' },
-                      '&:hover': {
-                        backgroundColor: alpha(theme.palette.primary.main, 0.1),
-                        borderColor: theme.palette.primary.main,
-                        transform: 'translateY(-1px)',
-                        boxShadow: `0 2px 8px ${alpha(theme.palette.primary.main, 0.15)}`
-                      }
-                    }}
-                    onClick={() => handleQuickQuestion("What are Amogh's technical skills?")}
-                  >
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.5, sm: 1 } }}>
-                      <EducationIcon sx={{ fontSize: { xs: '0.875rem', sm: '1rem' }, color: theme.palette.primary.main }} />
-                      <Typography
-                        variant="body2"
-                        sx={{
-                          color: theme.palette.primary.main,
-                          fontWeight: 500,
-                          fontSize: { xs: '0.75rem', sm: '0.875rem' }
-                        }}
-                      >
-                        Technical Skills
-                      </Typography>
-                    </Box>
-                  </Paper>
                 </>
               )}
             </Box>
@@ -1115,11 +1738,19 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, onNewMessage }) 
             <TextField
               fullWidth
               variant="outlined"
-              placeholder="Ask about Amogh's experience, projects, or skills..."
+              placeholder={
+                chatbotStatus?.status === 'offline'
+                  ? 'Chatbot is currently offline...'
+                  : showSchedulingForm && !schedulingFormSubmitted
+                    ? 'Please fill out the scheduling form above...'
+                    : showContactForm && !contactFormSubmitted
+                      ? 'Please fill out the contact form above...'
+                      : "Ask about Amogh's experience, projects, or skills..."
+              }
               value={currentInput}
               onChange={(e) => setCurrentInput(e.target.value)}
               onKeyDown={handleKeyPress}
-              disabled={isTyping}
+              disabled={isTyping || chatbotStatus?.status === 'offline' || (showContactForm && !contactFormSubmitted) || (showSchedulingForm && !schedulingFormSubmitted)}
               size="small"
               inputRef={inputRef}
               sx={{
@@ -1142,7 +1773,7 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, onNewMessage }) 
             />
             <IconButton
               onClick={handleSend}
-              disabled={!currentInput.trim() || isTyping}
+              disabled={!currentInput.trim() || isTyping || chatbotStatus?.status === 'offline' || (showContactForm && !contactFormSubmitted) || (showSchedulingForm && !schedulingFormSubmitted)}
               color="primary"
               sx={{
                 backgroundColor: alpha(theme.palette.primary.main, 0.1),

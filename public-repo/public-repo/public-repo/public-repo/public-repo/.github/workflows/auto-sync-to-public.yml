@@ -1,0 +1,28 @@
+name: Auto Push to Public Portfolio
+
+on:
+  push:
+    branches:
+      - public-v3
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Source Repo
+        uses: actions/checkout@v3
+
+      - name: Configure Git
+        run: |
+          git config --global user.name 'AutoPush Bot'
+          git config --global user.email 'bot@itsamoghgr.com'
+
+      - name: Clone Public Repo and Sync
+        run: |
+          git clone --branch v3 https://x-access-token:${{ secrets.TARGET_REPO_TOKEN }}@github.com/itsamoghgr/portfolio-codebase-itsamoghgr.git public-repo
+          rsync -av --delete --exclude='.git' ./ public-repo/
+          cd public-repo
+          git add .
+          git commit -m "🚀 Auto-sync from public-v3 [$(date)]" || echo "No changes to commit"
+          git push origin v3

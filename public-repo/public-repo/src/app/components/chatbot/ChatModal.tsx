@@ -61,12 +61,16 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, onNewMessage }) 
     message: ''
   });
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const isInitializedRef = useRef(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const { isDarkMode } = useCustomTheme();
   const theme = useTheme();
 
   // Custom close handler - just close without thank you message
   const handleClose = () => {
+    // Reset initialization flag when closing so it can reinitialize on next open
+    isInitializedRef.current = false;
     onClose();
   };
 
@@ -214,6 +218,18 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, onNewMessage }) 
     // Add to conversation history
     setConversationHistory(prev => [...prev, { role: 'assistant', content: text }]);
 
+    // Check if AI mentioned contact form but form isn't showing (fallback trigger)
+    const mentionsContactForm = text.toLowerCase().includes('contact form') ||
+                               text.toLowerCase().includes('fill out') ||
+                               (text.toLowerCase().includes('contact') && text.toLowerCase().includes('below'));
+
+    if (mentionsContactForm && !showContactForm && !contactFormSubmitted) {
+      setTimeout(() => {
+        setShowContactForm(true);
+        setIsExpanded(true);
+      }, 500);
+    }
+
     // Auto-expand for long responses
     const wordCount = text.split(' ').length;
     const lineCount = text.split('\n').length;
@@ -225,8 +241,15 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, onNewMessage }) 
       setIsExpanded(true);
     }
 
+    // Focus input field after bot response (with small delay for better UX)
+    setTimeout(() => {
+      if (inputRef.current && !showContactForm) {
+        inputRef.current.focus();
+      }
+    }, 300);
+
     onNewMessage();
-  }, [onNewMessage]);
+  }, [onNewMessage, showContactForm, contactFormSubmitted]);
 
   const addUserMessage = (text: string) => {
     const newMessage: Message = {
@@ -242,11 +265,15 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, onNewMessage }) 
   };
 
   const initializeChat = useCallback(() => {
+    // Add multiple flags to prevent duplicate initialization
+    if (messages.length > 0 || isInitializedRef.current) return;
+
+    isInitializedRef.current = true;
     setTimeout(() => {
       addBotMessage("Hi! I'm Amogh's AI assistant. I can answer questions about his experience, projects, skills, and career. What would you like to know?");
       setShowQuickQuestions(true);
     }, 500);
-  }, [addBotMessage]);
+  }, [addBotMessage, messages.length]);
 
   // Clear chat on page refresh and setup session persistence for chat close/reopen only
   useEffect(() => {
@@ -292,7 +319,7 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, onNewMessage }) 
       sessionStorage.removeItem('chatPageRefresh');
       initializeChat();
     }
-  }, [isOpen, messages.length, initializeChat]);
+  }, [isOpen, initializeChat]); // Removed messages.length from dependency to prevent re-runs
 
   // Save chat to sessionStorage for chat close/reopen only (not across page refreshes)
   useEffect(() => {
@@ -347,12 +374,15 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, onNewMessage }) 
     const input = currentInput.trim();
     setShowQuickQuestions(false); // Hide quick questions when user types
 
-    // Check if the message is about contacting Amogh
-    const contactKeywords = ['contact', 'reach', 'get in touch', 'hire', 'collaborate', 'email', 'phone'];
-    const isContactQuery = contactKeywords.some(keyword =>
-      input.toLowerCase().includes(keyword) &&
-      (input.toLowerCase().includes('amogh') || input.toLowerCase().includes('you'))
-    );
+    // Check if the message is about contacting Amogh (comprehensive detection)
+    const contactKeywords = ['contact', 'reach', 'get in touch', 'hire', 'collaborate', 'email', 'phone', 'message', 'write to'];
+    const contactPronouns = ['amogh', 'you', 'him', 'his', 'he', 'author', 'owner'];
+
+    const hasContactKeyword = contactKeywords.some(keyword => input.toLowerCase().includes(keyword));
+    const hasContactContext = contactPronouns.some(pronoun => input.toLowerCase().includes(pronoun));
+
+    // Trigger contact form if: has contact keyword AND (has context OR is just asking about "contact")
+    const isContactQuery = hasContactKeyword && (hasContactContext || input.toLowerCase().includes('contact'));
 
     if (isContactQuery) {
       // Add user message
@@ -360,16 +390,23 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, onNewMessage }) 
 
       // Check if contact form was already submitted
       if (contactFormSubmitted) {
+        setIsTyping(true);
         setTimeout(() => {
+          setIsTyping(false);
           addBotMessage("You've already submitted a contact form! Amogh will get back to you soon. In the meantime, feel free to ask about his experience or projects.");
-        }, 800);
+        }, 800 + Math.random() * 400);
       } else {
-        // Add bot response with contact form trigger
+        // Add bot response with contact form trigger and typing animation
+        setIsTyping(true);
         setTimeout(() => {
+          setIsTyping(false);
           addBotMessage("I'd be happy to help you get in touch with Amogh! Please fill out the contact form below and I'll make sure he receives your message.");
-          setShowContactForm(true);
-          setIsExpanded(true); // Auto-expand when contact form appears
-        }, 800);
+
+          setTimeout(() => {
+            setShowContactForm(true);
+            setIsExpanded(true); // Auto-expand when contact form appears
+          }, 300);
+        }, 1000 + Math.random() * 600);
       }
     } else {
       addUserMessage(input);
@@ -400,6 +437,8 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, onNewMessage }) 
       phoneNumber: '',
       message: ''
     });
+    // Reset initialization flag
+    isInitializedRef.current = false;
     // Clear sessionStorage when resetting chat
     sessionStorage.removeItem('chatMessages');
     sessionStorage.removeItem('chatConversationHistory');
@@ -419,16 +458,23 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, onNewMessage }) 
 
       // Check if contact form was already submitted
       if (contactFormSubmitted) {
+        setIsTyping(true);
         setTimeout(() => {
+          setIsTyping(false);
           addBotMessage("You've already submitted a contact form! Amogh will get back to you soon. In the meantime, feel free to ask about his experience or projects.");
-        }, 800);
+        }, 800 + Math.random() * 400);
       } else {
-        // Add bot response with contact form trigger
+        // Add bot response with contact form trigger and typing animation
+        setIsTyping(true);
         setTimeout(() => {
+          setIsTyping(false);
           addBotMessage("I'd be happy to help you get in touch with Amogh! Please fill out the contact form below and I'll make sure he receives your message.");
-          setShowContactForm(true);
-          setIsExpanded(true); // Auto-expand when contact form appears
-        }, 800);
+
+          setTimeout(() => {
+            setShowContactForm(true);
+            setIsExpanded(true); // Auto-expand when contact form appears
+          }, 300);
+        }, 1000 + Math.random() * 600);
       }
     } else {
       // Handle other quick questions normally
@@ -450,7 +496,7 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, onNewMessage }) 
       });
 
       if (response.ok) {
-        addBotMessage("Thank you! Your message has been sent to Amogh. He'll get back to you soon!");
+        // Hide form first, then show typing animation
         setContactFormData({
           fullName: '',
           email: '',
@@ -460,19 +506,45 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, onNewMessage }) 
         setShowContactForm(false);
         setContactFormSubmitted(true); // Mark as submitted
 
-        // Show post-contact quick questions after a brief delay
+        // Small delay to let form disappear, then show typing
         setTimeout(() => {
-          setQuickQuestionType('post-contact');
-          setShowQuickQuestions(true);
-        }, 1000);
+          setIsTyping(true);
+          setTimeout(() => {
+            setIsTyping(false);
+            addBotMessage("Perfect! Your message has been sent to Amogh successfully. He'll review it and get back to you soon!");
+
+            // Add a follow-up message with typing animation
+            setTimeout(() => {
+              setIsTyping(true);
+              setTimeout(() => {
+                setIsTyping(false);
+                addBotMessage("While you wait for his response, feel free to explore more about his work and experience! What else would you like to know?");
+
+                // Show post-contact quick questions after the follow-up message
+                setTimeout(() => {
+                  setQuickQuestionType('post-contact');
+                  setShowQuickQuestions(true);
+                  // Focus input after contact form flow
+                  if (inputRef.current) {
+                    inputRef.current.focus();
+                  }
+                }, 500);
+              }, 1200);
+            }, 800);
+          }, 1000 + Math.random() * 800);
+        }, 200);
       } else {
-        addBotMessage("Sorry, there was an issue sending your message. Please try again or contact Amogh directly at amoghr@gwu.edu");
+        setTimeout(() => {
+          setIsTyping(false);
+          addBotMessage("Sorry, there was an issue sending your message. Please try again or contact Amogh directly at amoghr@gwu.edu");
+        }, 800);
       }
     } catch (error) {
       console.error('Error submitting contact form:', error);
-      addBotMessage("Sorry, there was an issue sending your message. Please try again or contact Amogh directly at amoghr@gwu.edu");
-    } finally {
-      setIsTyping(false);
+      setTimeout(() => {
+        setIsTyping(false);
+        addBotMessage("Sorry, there was an issue sending your message. Please try again or contact Amogh directly at amoghr@gwu.edu");
+      }, 800);
     }
   };
 
@@ -746,7 +818,13 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, onNewMessage }) 
                   required
                   sx={{
                     '& .MuiOutlinedInput-root': {
-                      borderRadius: 2
+                      borderRadius: 2,
+                      '& input': {
+                        fontSize: { xs: '16px', sm: '14px' }
+                      }
+                    },
+                    '& .MuiInputLabel-root': {
+                      fontSize: { xs: '16px', sm: '14px' }
                     }
                   }}
                 />
@@ -760,7 +838,13 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, onNewMessage }) 
                   required
                   sx={{
                     '& .MuiOutlinedInput-root': {
-                      borderRadius: 2
+                      borderRadius: 2,
+                      '& input': {
+                        fontSize: { xs: '16px', sm: '14px' }
+                      }
+                    },
+                    '& .MuiInputLabel-root': {
+                      fontSize: { xs: '16px', sm: '14px' }
                     }
                   }}
                 />
@@ -772,7 +856,13 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, onNewMessage }) 
                   onChange={(e) => setContactFormData(prev => ({ ...prev, phoneNumber: e.target.value }))}
                   sx={{
                     '& .MuiOutlinedInput-root': {
-                      borderRadius: 2
+                      borderRadius: 2,
+                      '& input': {
+                        fontSize: { xs: '16px', sm: '14px' }
+                      }
+                    },
+                    '& .MuiInputLabel-root': {
+                      fontSize: { xs: '16px', sm: '14px' }
                     }
                   }}
                 />
@@ -787,7 +877,16 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, onNewMessage }) 
                   placeholder="Tell Amogh about your project, collaboration opportunity, or hiring needs..."
                   sx={{
                     '& .MuiOutlinedInput-root': {
-                      borderRadius: 2
+                      borderRadius: 2,
+                      '& textarea': {
+                        fontSize: { xs: '16px', sm: '14px' }
+                      }
+                    },
+                    '& .MuiInputLabel-root': {
+                      fontSize: { xs: '16px', sm: '14px' }
+                    },
+                    '& .MuiInputBase-input::placeholder': {
+                      fontSize: { xs: '16px', sm: '14px' }
                     }
                   }}
                 />
@@ -811,17 +910,24 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, onNewMessage }) 
                     variant="outlined"
                     onClick={() => {
                       setShowContactForm(false);
-                      // Add interactive message when contact form is cancelled
-                      const cancelMessage: Message = {
-                        id: Date.now().toString(),
-                        text: "No worries! What else would you like to know about Amogh's profile? I can tell you about his experience, projects, education, or anything else you're curious about.",
-                        isBot: true,
-                        timestamp: new Date()
-                      };
-                      setMessages(prev => [...prev, cancelMessage]);
-                      setShowQuickQuestions(true);
-                      setQuickQuestionType('initial');
-                      setIsExpanded(true);
+
+                      // Add typing animation for cancel response
+                      setIsTyping(true);
+                      setTimeout(() => {
+                        setIsTyping(false);
+                        addBotMessage("No worries! What else would you like to know about Amogh's profile? I can tell you about his experience, projects, education, or anything else you're curious about.");
+
+                        // Show quick questions after a brief delay
+                        setTimeout(() => {
+                          setShowQuickQuestions(true);
+                          setQuickQuestionType('initial');
+                          setIsExpanded(true);
+                          // Focus input after cancellation
+                          if (inputRef.current) {
+                            inputRef.current.focus();
+                          }
+                        }, 600);
+                      }, 800 + Math.random() * 600);
                     }}
                     sx={{
                       px: 3,
@@ -1015,9 +1121,22 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, onNewMessage }) 
               onKeyDown={handleKeyPress}
               disabled={isTyping}
               size="small"
+              inputRef={inputRef}
               sx={{
                 '& .MuiOutlinedInput-root': {
-                  borderRadius: 3
+                  borderRadius: 3,
+                  '& input': {
+                    fontSize: { xs: '16px', sm: '14px' }, // 16px+ on mobile prevents zoom
+                    '@media (max-width: 600px)': {
+                      fontSize: '16px'
+                    }
+                  }
+                },
+                '& .MuiInputBase-input::placeholder': {
+                  fontSize: { xs: '16px', sm: '14px' },
+                  '@media (max-width: 600px)': {
+                    fontSize: '16px'
+                  }
                 }
               }}
             />
