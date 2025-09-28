@@ -12,6 +12,8 @@ import {
 } from '@mui/material';
 import { Chat as ChatIcon, Close as CloseIcon } from '@mui/icons-material';
 import { useTheme as useCustomTheme } from '../../../contexts/ThemeContext';
+import { useChatbotStatus } from '../../../hooks/useChatbotStatus';
+import StatusIndicator from './StatusIndicator';
 import ChatModal from './ChatModal';
 
 const ChatWidget = () => {
@@ -20,9 +22,10 @@ const ChatWidget = () => {
   const [showPopup, setShowPopup] = useState(false);
   const { isDarkMode } = useCustomTheme();
   const theme = useTheme();
+  const { chatbotStatus, refreshStatus, isOnline, isOffline } = useChatbotStatus(false);
 
   useEffect(() => {
-    // Always show popup on page refresh/load, don't use localStorage
+    // Show popup after component mounts
     const showTimer = setTimeout(() => {
       setShowPopup(true);
     }, 1000);
@@ -36,21 +39,30 @@ const ChatWidget = () => {
     setShowPopup(false);
   };
 
-  const toggleChat = () => {
-    setIsOpen(!isOpen);
+  const toggleChat = async () => {
+    // Check status when user clicks the chatbot (only if chat is closed)
     if (!isOpen) {
-      setHasUnreadMessages(false);
-      setShowPopup(false);
+      await refreshStatus();
+      // Give a small delay to allow status to update
+      setTimeout(() => {
+        setIsOpen(true);
+        setHasUnreadMessages(false);
+        setShowPopup(false);
+      }, 100);
+    } else {
+      setIsOpen(false);
     }
   };
 
   return (
     <>
       {/* Chat Modal */}
-      <ChatModal 
-        isOpen={isOpen} 
+      <ChatModal
+        isOpen={isOpen}
         onClose={() => setIsOpen(false)}
         onNewMessage={() => setHasUnreadMessages(true)}
+        chatbotStatus={chatbotStatus}
+        onRefreshStatus={refreshStatus}
       />
 
       {/* Floating Chat Button - Only show when chat is closed */}
@@ -81,7 +93,7 @@ const ChatWidget = () => {
                 boxShadow: isDarkMode
                   ? '0 8px 32px rgba(0, 0, 0, 0.5)'
                   : '0 8px 32px rgba(0, 0, 0, 0.15)',
-                animation: 'slideUpAndFloat 0.5s ease-out, gentleFloat 4s ease-in-out infinite 1s',
+                animation: 'slideUpAndFloat 0.5s ease-out, smoothFloat 6s ease-in-out infinite 1s',
                 zIndex: 999,
                 cursor: 'pointer',
                 '&:hover': {
@@ -118,6 +130,7 @@ const ChatWidget = () => {
               </Typography>
             </Paper>
           )}
+
 
           <Badge
             color="primary"
@@ -179,18 +192,12 @@ const ChatWidget = () => {
           }
         }
 
-        @keyframes gentleFloat {
+        @keyframes smoothFloat {
           0%, 100% {
             transform: translateY(0px);
           }
-          25% {
-            transform: translateY(-2px);
-          }
           50% {
-            transform: translateY(-3px);
-          }
-          75% {
-            transform: translateY(-1px);
+            transform: translateY(-2px);
           }
         }
       `}</style>

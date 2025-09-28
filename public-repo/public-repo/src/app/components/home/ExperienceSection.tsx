@@ -11,7 +11,7 @@ import {
   Card,
   CardContent
 } from '@mui/material';
-import { CloudDownload } from '@mui/icons-material';
+import { OpenInNew } from '@mui/icons-material';
 import { useTheme as useCustomTheme } from '../../../contexts/ThemeContext';
 
 const ExperienceSection = () => {
@@ -152,9 +152,10 @@ const ExperienceSection = () => {
           </Box>
           <Button
             variant="contained"
-            startIcon={<CloudDownload />}
-            href="public/documents/amogh_ramagiri_resume_gen.pdf"
-            download
+            startIcon={<OpenInNew />}
+            href="/documents/amogh_ramagiri_resume_gen.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
             sx={{
               position: { xs: 'static', sm: 'absolute' },
               right: { xs: 'auto', sm: 0 },
@@ -176,7 +177,7 @@ const ExperienceSection = () => {
               transition: 'all 0.3s ease'
             }}
           >
-            Resume
+            View Resume
           </Button>
         </Box>
 

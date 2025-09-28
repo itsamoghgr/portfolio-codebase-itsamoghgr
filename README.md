@@ -15,6 +15,10 @@ A modern, responsive portfolio website showcasing the work and expertise of Amog
 - Context-aware responses about Amogh's background and projects
 - Real-time conversation with professional information
 - Smart contact form integration
+- **Meeting scheduling with Google Calendar integration**
+- Interactive date/time picker for seamless booking
+- On-demand status checking (no auto-polling)
+- Professional scheduling workflow with email confirmations
 
 ### 📊 **Professional Showcase**
 - Comprehensive skills visualization with icons
@@ -39,9 +43,11 @@ A modern, responsive portfolio website showcasing the work and expertise of Amog
 
 ### **AI & Backend**
 - **AI Model**: Groq LLaMA 3.1-8B Instant
-- **API Routes**: Next.js API routes for chat and contact
+- **API Routes**: Next.js API routes for chat, contact, and calendar
 - **Database**: Supabase (for contact form submissions)
+- **Calendar Integration**: Google Calendar API with service account
 - **Context Building**: Custom resume context system
+- **Scheduling**: Automated meeting creation with Google Meet links
 
 ### **DevOps & Deployment**
 - **Hosting**: Vercel
@@ -66,7 +72,9 @@ my-portfolio/
 │   │   │   └── admin/          # Admin components
 │   │   ├── api/
 │   │   │   ├── chat/           # Groq AI integration
-│   │   │   └── contact/        # Contact form handler
+│   │   │   ├── contact/        # Contact form handler
+│   │   │   ├── calendar/       # Google Calendar integration
+│   │   │   └── chat-status/    # Chatbot status checking
 │   │   ├── layout.tsx          # Root layout
 │   │   └── page.tsx            # Home page
 │   ├── contexts/
@@ -99,6 +107,7 @@ Before you begin, ensure you have the following installed:
 To run the full application, you'll need:
 - **Groq API Key** - [Get it free from Groq](https://console.groq.com/)
 - **Supabase Account** - [Sign up at Supabase](https://supabase.com/)
+- **Google Calendar API** - [Google Cloud Console](https://console.cloud.google.com/) (for meeting scheduling)
 
 ### 📥 Installation & Setup
 
@@ -131,6 +140,11 @@ GROQ_API_KEY=your_groq_api_key_here
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 
+# Google Calendar API (Required for meeting scheduling)
+GOOGLE_SERVICE_ACCOUNT_EMAIL=your-service-account@your-project.iam.gserviceaccount.com
+GOOGLE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nYour private key here\n-----END PRIVATE KEY-----"
+GOOGLE_CALENDAR_ID=your-calendar-id@gmail.com
+
 # Optional: Vercel Analytics (for production)
 NEXT_PUBLIC_VERCEL_ANALYTICS_ID=your_analytics_id
 ```
@@ -150,6 +164,16 @@ NEXT_PUBLIC_VERCEL_ANALYTICS_ID=your_analytics_id
 3. Go to Project Settings → API
 4. Copy the Project URL and anon public key
 5. Add them to your `.env.local` file
+
+**For Google Calendar API:**
+1. Visit [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project or select existing one
+3. Enable the Google Calendar API
+4. Create credentials → Service Account
+5. Download the JSON key file
+6. Extract the `client_email` and `private_key` values
+7. Add your calendar ID (usually your Gmail address)
+8. Add all values to your `.env.local` file
 
 #### Step 4: Data Customization (Optional)
 If you want to customize the portfolio with your own information:
@@ -266,6 +290,10 @@ npm audit fix
 - Project information and links
 - Professional background details
 - Contact form integration
+- **Meeting scheduling with calendar integration**
+- Interactive date and time selection
+- Automatic Google Calendar event creation
+- Professional scheduling workflow
 
 ## 🔧 Configuration
 
@@ -304,6 +332,10 @@ Edit `data/projects.json` to showcase:
 - Skills and experience details
 - Contact form assistance
 - Context-aware conversations
+- **Meeting scheduling and calendar integration**
+- Interactive date/time picker interface
+- Automatic calendar event creation with details
+- On-demand status checking (no background polling)
 
 ### **Smart Responses**
 - Resume-based context building
@@ -346,7 +378,13 @@ npm install
 - Check Supabase project is active
 - Ensure proper table structure in Supabase
 
-**6. Build failures**
+**6. Meeting scheduling not working**
+- Verify Google Calendar API credentials are correct
+- Check that the service account has calendar access
+- Ensure the Google Calendar ID is valid
+- Check Vercel environment variables are properly set
+
+**7. Build failures**
 ```bash
 # Check for TypeScript errors
 npm run type-check
@@ -372,6 +410,8 @@ This project is optimized for deployment on Vercel:
 4. **Configure** environment variables in Vercel:
    - Go to Project Settings → Environment Variables
    - Add all variables from your `.env.local` file
+   - **Important**: Don't include quotes around values in Vercel
+   - For `GOOGLE_PRIVATE_KEY`, paste the key content without quotes
 5. **Deploy** automatically on every push to main branch
 
 #### Manual Deployment
@@ -411,12 +451,6 @@ EXPOSE 3000
 CMD ["npm", "start"]
 ```
 
-```bash
-# Build and run Docker container
-docker build -t portfolio .
-docker run -p 3000:3000 portfolio
-```
-
 ## 📈 Analytics
 
 - **Vercel Analytics**: User engagement tracking
@@ -427,9 +461,6 @@ docker run -p 3000:3000 portfolio
 
 This is a personal portfolio project, but suggestions and feedback are welcome! Feel free to open issues or submit pull requests.
 
-## 📄 License
-
-This project is open source and available under the [MIT License](LICENSE).
 
 ## 📞 Contact
 
@@ -441,4 +472,4 @@ This project is open source and available under the [MIT License](LICENSE).
 
 ---
 
-*Built with ❤️ by Amogh Ramagiri using Next.js, TypeScript, and modern web technologies.*
+*Built with ❤️ by Amogh Ramagiri using Next.js, TypeScript, and modern web technologies with Gen-AI tools.*
