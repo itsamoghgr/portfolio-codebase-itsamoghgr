@@ -1,0 +1,42 @@
+{
+  "projects": [
+    {
+      "id": "1",
+      "title": "Perance: Personal Finance Manager",
+      "description": "A comprehensive personal finance tracking application that helps users monitor their assets, investments, and spending patterns. Features AI-powered insights and recommendations for better financial decision making.",
+      "techStack": ["React", "Next.js", "Supabase", "ChatGPT API", "TypeScript", "Material-UI"],
+      "repoUrl": "https://github.com/amoghr/perance",
+      "liveDemoUrl": "https://perance.vercel.app",
+      "imageUrl": "/images/perance.png",
+      "featured": true,
+      "category": "web-development",
+      "startDate": "2024-01-15",
+      "endDate": "2024-06-30",
+      "status": "completed"
+    },
+    {
+      "id": "2",
+      "title": "Credit Risk Analysis Dashboard - Fulton Bank",
+      "description": "Developed an advanced credit risk analysis system for forecasting mortgage loan applications. Built comprehensive dashboards and ETL pipelines to process and analyze large datasets for risk assessment.",
+      "techStack": ["Python", "SQL", "Power BI", "SSAS", "Azure", "Pandas", "Scikit-learn"],
+      "imageUrl": "/images/fulton.png",
+      "featured": true,
+      "category": "data-science",
+      "startDate": "2024-05-01",
+      "endDate": "2024-12-31",
+      "status": "in-progress"
+    },
+    {
+      "id": "3",
+      "title": "Carbon Footprint Analysis Tool",
+      "description": "Built predictive models for NGOs to analyze and forecast carbon footprint patterns. Implemented machine learning algorithms to identify trends and provide actionable insights for environmental impact reduction.",
+      "techStack": ["Python", "Scikit-learn", "Pandas", "Matplotlib", "Jupyter", "Flask"],
+      "imageUrl": "/images/carbon-analysis.png",
+      "featured": false,
+      "category": "data-science",
+      "startDate": "2024-02-01",
+      "endDate": "2024-08-31",
+      "status": "completed"
+    }
+  ]
+}

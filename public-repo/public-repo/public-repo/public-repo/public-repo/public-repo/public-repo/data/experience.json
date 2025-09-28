@@ -1,0 +1,43 @@
+{
+  "experiences": [
+    {
+      "id": "1",
+      "role": "Data Scientist Intern",
+      "company": "Fulton Bank",
+      "duration": "May 2024 – Present",
+      "description": "Leading development of credit risk assessment models for mortgage loan forecasting. Building comprehensive dashboards and implementing ETL pipelines using SQL and SSAS. Collaborating with cross-functional teams to deliver data-driven solutions that impact business decisions.",
+      "skills": ["Python", "SQL", "Azure", "Power BI", "SSAS", "Machine Learning", "Data Visualization"],
+      "type": "work",
+      "location": "Lancaster, PA",
+      "startDate": "2024-05-01",
+      "endDate": null,
+      "current": true
+    },
+    {
+      "id": "2",
+      "role": "Consultant – Data Science",
+      "company": "DSSD (Data Science for Social Development)",
+      "duration": "Feb 2024 – Aug 2024",
+      "description": "Collaborated with multiple NGOs on environmental impact analysis projects. Developed predictive models for carbon footprint analysis and implemented machine learning solutions for sustainability initiatives. Conducted comprehensive research and delivered actionable insights.",
+      "skills": ["Scikit-learn", "Pandas", "Research", "Environmental Analysis", "Predictive Modeling", "Data Analytics"],
+      "type": "work",
+      "location": "Remote",
+      "startDate": "2024-02-01",
+      "endDate": "2024-08-31",
+      "current": false
+    },
+    {
+      "id": "3",
+      "role": "Bachelor of Science in Data Science",
+      "company": "University Name",
+      "duration": "2020 – 2024",
+      "description": "Comprehensive coursework in machine learning, statistics, programming, and data analysis. Completed capstone project on financial risk modeling. Graduated with honors.",
+      "skills": ["Statistics", "Machine Learning", "Python", "R", "Mathematics", "Research Methods"],
+      "type": "education",
+      "location": "University City, State",
+      "startDate": "2020-09-01",
+      "endDate": "2024-05-15",
+      "current": false
+    }
+  ]
+}

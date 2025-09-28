@@ -45,8 +45,8 @@ export const projectsData = {
       "title": "Web Development Portfolio v3",
       "description": "Built responsive portfolio website using modern web technologies with interactive animations and optimized performance for showcasing professional work.",
       "techStack": ["React", "Next.js", "TypeScript", "Material-UI", "Responsive Design"],
-      "repoUrl": "https://github.com/itsamoghgr/portfolio",
-      "liveDemoUrl": "https://amoghramagiri.com",
+      "repoUrl": "https://github.com/itsamoghgr/portfolio-codebase-itsamoghgr",
+      "liveDemoUrl": "https://itsamoghgr.com",
       "imageUrl": "/images/portfolio/img-6.png",
       "date": "Aug 2025"
     },
@@ -95,7 +95,7 @@ export const projectsData = {
       "title": "AI Assistant Chatbot for Portfolio",
       "description": "Built an AI-powered chatbot assistant for portfolio website using Groq's LLaMA3-8b model. Features smart contact form handling, session persistence, and auto-expansion for enhanced user engagement.",
       "techStack": ["React", "Next.js", "TypeScript", "Material-UI", "Groq API", "LLaMA 3.1", "Supabase"],
-      "repoUrl": "https://github.com/itsamoghgr/portfolio",
+      "repoUrl": "https://github.com/itsamoghgr/portfolio-codebase-itsamoghgr",
       "liveDemoUrl": "https://itsamoghgr.com",
       "imageUrl": "/images/portfolio/img-11.png",
       "date": "Sep 2025"

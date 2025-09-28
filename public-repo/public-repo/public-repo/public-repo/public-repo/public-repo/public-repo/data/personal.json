@@ -1,0 +1,44 @@
+{
+  "personal": {
+    "name": "Amogh G. Ramagiri",
+    "title": "Data Scientist & Developer",
+    "email": "amogh.ramagiri@example.com",
+    "phone": "+1 (555) 123-4567",
+    "location": "United States",
+    "bio": "Passionate Data Scientist with expertise in machine learning, statistical analysis, and software development. I specialize in turning complex data into actionable insights and building intelligent solutions that drive business value.",
+    "skills": {
+      "technical": [
+        "Python",
+        "SQL",
+        "Machine Learning",
+        "React",
+        "Next.js",
+        "TypeScript",
+        "Power BI",
+        "Azure",
+        "Scikit-learn",
+        "Pandas",
+        "TensorFlow",
+        "Git"
+      ],
+      "soft": [
+        "Problem Solving",
+        "Team Collaboration",
+        "Communication",
+        "Project Management",
+        "Research",
+        "Data Storytelling"
+      ]
+    },
+    "social": {
+      "github": "https://github.com/amoghr",
+      "linkedin": "https://linkedin.com/in/amogh-ramagiri",
+      "email": "amogh.ramagiri@example.com"
+    },
+    "resume": {
+      "url": "/files/Amogh_Ramagiri_Resume.pdf",
+      "lastUpdated": "2024-12-01"
+    },
+    "profileImage": "/images/profile.jpg"
+  }
+}
