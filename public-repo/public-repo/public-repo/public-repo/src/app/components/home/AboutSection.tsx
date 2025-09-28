@@ -36,6 +36,16 @@ const AboutSection = () => {
       ]
     },
     {
+      category: 'Generative AI',
+      skills: [
+        { name: 'OpenAI GPT', icon: 'https://upload.wikimedia.org/wikipedia/commons/0/04/ChatGPT_logo.svg' },
+        { name: 'Groq', icon: '/images/icons/groq-icon.png' },
+        { name: 'LangChain', icon: 'https://python.langchain.com/img/brand/wordmark.png' },
+        { name: 'Prompt Engineering', icon: 'https://cdn-icons-png.flaticon.com/512/8637/8637099.png' },
+        { name: 'LLMs', icon: 'https://cdn-icons-png.flaticon.com/512/4712/4712139.png' }
+      ]
+    },
+    {
       category: 'Tools',
       skills: [
         { name: 'Git', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/git/git-original.svg' },
@@ -51,7 +61,8 @@ const AboutSection = () => {
   const competencies = [
     'Python Programming',
     'Data Analysis',
-    'Machine Learning', 
+    'Machine Learning',
+    'Generative AI & LLMs',
     'Natural Language Processing',
     'Web Development'
   ];

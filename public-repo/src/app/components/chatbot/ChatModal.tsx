@@ -84,7 +84,7 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, onNewMessage }) 
       // If it's a URL, make it clickable
       if (part.match(urlRegex)) {
         const isRelativeUrl = part.startsWith('/');
-        const displayText = isRelativeUrl && part.includes('.pdf') ? 'Download Resume' : part;
+        const displayText = isRelativeUrl && part.includes('.pdf') ? 'View Resume' : part;
 
         return (
           <Box
